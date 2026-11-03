@@ -77,3 +77,5 @@ norms of 1e10+ differ between machines, CLAUDE.md pitfall 9); healthy pairs shou
 ## Outcomes (fill AFTER results; do not edit anything above this line)
 | id | outcome (held / failed / partly) | numbers |
 |---|---|---|
+
+Registered at commit c41967c7efc27fa9778f575334c01b0d323502e9 (2026-11-03), before any optimiser-baseline result existed.
