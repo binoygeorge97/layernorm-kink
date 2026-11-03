@@ -76,3 +76,6 @@ remains true, but "carried by one start" overstates it. The gradient is dominate
 norm, while the explosion itself involves 11 to 498 of the 1000 starts on the trapped LN MSE pairs. That is why per-start
 clipping (bounds every start) works and a median over 10 groups (needs a majority of clean groups) does not. Proposed slide
 text: out/slide_fixes.md, entry 12 (a proposal; nothing on the slide was changed).
+Check for the "healthy: none" part (one per-start gradient evaluation at the good controller, healthy pairs): largest
+per-start norm 2.96 (LN MSE s3), 5.29 (LN MSE s7; 18 starts above 3), 0.26 (two-stage s2), 1.86 (two-stage s9); no start above
+1e3 on any healthy pair.
