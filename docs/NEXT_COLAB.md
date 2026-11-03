@@ -47,7 +47,7 @@ REPS   = [0, 1, 2]
 ```
 "Optimiser-side control" cell: `RUN_ROBUST = True` and `ROBUST_REPS = [0, 1, 2]`.
 "Optimiser baselines" cell: `RUN_OPT = True` (`OPT_REPS = [0, 1, 2]` default).
-Root `MyDrive/dpc_out` (the new model names do not collide with existing files; the oracle controllers of repeats 0-2 are
+Root `MyDrive/dpc_out` (tested end to end in QUICK mode on a copy of a finished folder; `surrogates.csv` keeps the main rows. The new model names do not collide with existing files; the oracle controllers of repeats 0-2 are
 reused, not retrained). Cost estimate: clip, unit and median-of-means need one backward pass per start (about 3-5x a plain
 model); global clip and lr 1e-4 cost one plain model each; batch 100 about 0.2x; N <= 50 and N <= 100 well under one plain
 model. A plain model is ~35 s per seed per repeat on the A100, so ~6 min per model and repeat set (30 runs), i.e. roughly

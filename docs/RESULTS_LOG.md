@@ -36,3 +36,12 @@ parks at -0.581 (7 starts) / +1.71 (3); seed 2 at 1.08-1.10 (9 starts), x0 = -2.
 no hit in the companions; B_hat = 18.3 B gives K = 3.985 (handout says 3.98)
 2026-11-03 | Task 2a.1 | e1d3e7f, 8ecc750 (prereg Part 1) | plant-derived constants, surrogate and label cache guards,
 PLANT/ROOT/SURROGATES_ONLY; tools/regress_plant.py all pass; PREREG_B01.md Part 1 committed before any B = 0.1 data | - | - | -
+2026-11-03 | notebook smoke tests (Colab runs 1-4 emulated, QUICK, CPU) | see commit after b1 | tools/run_quick.py with --set:
+MLP oracle-only, B = 0.1 surrogates-only, Run 4 (ONLY = [], robust [0, 1], RUN_OPT) on top of a fresh default folder | QUICK |
+all pass after fixes | FOUND AND FIXED: (1) oracle-only runs crashed in the diagnostic cell -> stage-A runs now zip and stop
+after training; (2) PRE-EXISTING BUG: run_dpc rewrote surrogates.csv with only the models of the current call, so the robust
+block (default RUN_ROBUST = True) replaced the main rows; Run 4 would have done this to MyDrive/dpc_out/surrogates.csv. Now
+merged (main rows kept, verified identical). Deliberate change of a default output (bug fix, ground rule 4 exception);
+the Drive file was never affected (the robust block never ran on Colab). (3) D6 restricted to the main models.
+Also seen (after PREREG_B01 Part 1 was committed): QUICK-mode B = 0.1 surrogates (2 seeds, 300 steps) give LN MSE median peak
+|J_u/B - 1| 7.5; not a result (short training), noted for transparency.
