@@ -321,7 +321,7 @@ Three consequences follow.
 \item $\Phi'(\theta)$ changes sign as $\theta$ goes round, so the error is positive in some directions and negative in others: lobes that alternate around the centre. These are the petals of the heat maps.
 \item The value error and the slope error are linked. $\Phi(\theta)$ is bounded and fitted on average, so the value error stays small, while the slope error is its angular derivative divided by the distance. An order-of-magnitude estimate: an angular wiggle of size $a$ in the value gives an input-slope error of about $a/\rho_u$, i.e. a relative error $a/(B\rho_u)$. With $a=10^{-3}$, $B=0.01$ and $\rho_u=0.2$ (a typical kink half-width in $u$) this is already 0.5. The same wiggle gives an $\hat J_x$ error of about $a/\rho_x$, which is small next to $A$ but must be compared with the margin $A-1=0.03$. This is why low control authority makes $\hat J_u$ the vulnerable slope.
 \end{enumerate}
-What the measurements show (Section~\ref{sec:s3}): the angular sign alternation is clear; along the direction of the setpoints the decay is $1/d$ (log-log slope $-0.98$); the largest error on a circle decays faster at intermediate distances (slope about $-1.6$ for $\hat J_u$ and $-1.2$ for $\hat J_x$ at $d=2$ to $20$), consistent with the $1/\rho$ term having a small amplitude and the $1/\rho^2$ terms still mattering there. The briefing's ``1/d law'' should therefore be stated as ``algebraic decay, $1/d$ along the setpoint line''.
+What the measurements show (Section~\ref{sec:s3}): the angular sign alternation is clear; along the direction of the setpoints the decay is about $1/d$ (fitted log-log slope $-0.98$ over 440 setpoint designs, with about a decade of scatter); the largest error on a circle decays faster at intermediate distances (slope about $-1.6$ for $\hat J_u$ and $-1.2$ for $\hat J_x$ at $d=2$ to $20$), consistent with the $1/\rho$ term having a small amplitude and the $1/\rho^2$ terms still mattering there. The briefing's ``1/d law'' should therefore be stated as ``algebraic decay, $1/d$ along the setpoint line''.
 
 \subsection{Per-seed geometry of the main family}
 \begin{table}[H]
@@ -680,7 +680,7 @@ Static norm 0 to 1 percent and no norm 0 to 4 percent at every setpoint. LN slop
 \subsection{Hypothesis, observation, conclusion}
 Hypothesis H1b: the fixed-LQR damage peaks where setpoints sit on the kink (near $r=0$, because every kink is centred near the origin) and decays with distance as the petal tails predict.
 
-Observation: the failure rate is a bump centred at $r=0$ and essentially zero beyond $|r|=1$; the setpoint gain error follows $0.49\,d^{-0.98}$; catastrophic failures nearly vanish beyond $d\approx8$ (0.4 percent at $d=8$ to 32, none beyond).
+Observation: the failure rate is a bump centred at $r=0$ and essentially zero beyond $|r|=1$; the setpoint gain error follows about $0.49/d$ (fit $0.49\,d^{-0.98}$); catastrophic failures nearly vanish beyond $d\approx8$ (0.4 percent at $d=8$ to 32, none beyond).
 
 Conclusion: for a fixed design the kink is a location problem. Since $z^\star$, $r^*_x$ and $r^*_u$ follow from $E$, $b$ and $\epsilon$ in closed form, the risk of linearising at a given operating point can be estimated before any controller is run: expect an input-slope error of roughly $0.5/d$, and do not trust a linearisation within $d\approx4$.
 
