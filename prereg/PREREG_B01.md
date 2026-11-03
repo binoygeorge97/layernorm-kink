@@ -44,3 +44,64 @@ plants", and the two-state plant (Task 2b) should also be low authority.
 |---|---|---|
 
 Part 1 registered at commit 8ecc750aa43798a65efc08265db7ab8f3e570acb (2026-11-03), before any B = 0.1 data existed.
+
+## Outcomes Part 1 (computed 2026-11-03 from Stage A, `data/dpc_out_B01`)
+| id | outcome | numbers |
+|---|---|---|
+| Q1 | held | median peak abs(J_u_hat/B - 1), B = 0.01 -> 0.1: LN, J_x + J_u (3000) 7.92 -> 0.72; LN, MSE (12000) 2.80 -> 0.27; LN, MSE (3000) 18.67 -> 2.63; LN, two-stage 1.19 -> 0.14; no norm, MSE 0.77 -> 0.07; static norm, MSE 0.46 -> 0.06; LN families smaller: 4 of 4 |
+| Q2 | held | P(catastrophic given pole inside the band) = 0.26 % (n = 3472) |
+| Q3 | held | designs outside the band: 48, catastrophic 100.0 % |
+
+LQR failure rates at B = 0.1 (% failed / catastrophic of runs with abs(x0 - r) >= 0.5):
+| model | failed, LQR fixed | failed, LQR sched | catastrophic, LQR fixed | catastrophic, LQR sched |
+|---|---|---|---|---|
+| LN MSE 12000 | 1.5 | 0.8 | 0.9 | 0.0 |
+| LN MSE 3000 | 25.1 | 15.5 | 5.6 | 3.9 |
+| LN slope from step 0 | 1.4 | 0.6 | 0.0 | 0.1 |
+| LN two-stage | 0.6 | 0.3 | 0.0 | 0.0 |
+| no norm | 0.0 | 0.0 | 0.0 | 0.0 |
+| static norm | 0.0 | 0.0 | 0.0 | 0.0 |
+
+LN MSE 3000 kink geometry at B = 0.1 (per seed):
+| seed | Ju_sup_rel | zmin_x | zmin_u | rstar_x | rstar_u |
+|---|---|---|---|---|---|
+| 0 | 0.784 | 0.011 | -0.06 | 0.443 | 0.652 |
+| 1 | 5.21 | -0.017 | 0.005 | 0.125 | 0.166 |
+| 2 | 12.2 | 0.08 | -0.021 | 0.117 | 0.106 |
+| 3 | 2.34 | 0.038 | -0.036 | 0.231 | 0.352 |
+| 4 | 1.74 | 0.043 | 0.042 | 0.274 | 0.297 |
+| 5 | 0.985 | -0.011 | -0.075 | 0.514 | 0.898 |
+| 6 | 0.609 | 0.041 | 0.055 | 0.563 | 0.775 |
+| 7 | 2.91 | -0.028 | 0.01 | 0.246 | 0.275 |
+| 8 | 5.52 | -0.082 | -0.022 | 0.212 | 0.27 |
+| 9 | 4.24 | -0.067 | 0.039 | 0.215 | 0.252 |
+
+## Part 2 (written 2026-11-03, after Stage A, BEFORE Stage B)
+Results that exist at the time of writing: Stage A at B = 0.1 (surrogates, labels, GRU oracle repeats [0, 1, 2]), the LQR study
+and Lambda* above. No DPC controller trained through a B = 0.1 surrogate exists.
+Stage B (Colab A100): `PLANT = L.Plant(A=1.03, B=0.1, eps_nl=0.0)`, `ROOT = "dpc_out_B01"`, `SURROGATES_ONLY = False`,
+`ONLY = None`, `REPS = [0, 1, 2]`, `ARCH = "gru"`, `RUN_ROBUST = False`, `RUN_OPT = False`, `DTYPE = "float64"`.
+Primary outcome: trapped (CLAUDE.md 1.4, oracle of the same plant, seed and repeat). Predictor: Lambda* of the B = 0.1 GRU
+oracle through the surrogate (theory/t2_test.py, T2_PLANT = 1.03,0.1), threshold 12.1 NOT re-tuned.
+
+| id | prediction | how it is scored |
+|---|---|---|
+| R1 | trapped iff Lambda* > 12.1; predicted trapped: 1 of 180 runs (list below, `prereg/PREREG_B01_predicted.csv`) | confusion matrix; held if hit rate >= 0.75 and false-alarm rate <= 0.05 (no predicted traps: held if at most 1 run is trapped) |
+| R2 | two-stage, no norm and static norm: no trapped run | count |
+
+Per family:
+| family | runs | predicted_trapped | max_Lambda |
+|---|---|---|---|
+| LN MSE 3000 | 30 | 1 | 14.7 |
+| LN MSE 12000 | 30 | 0 | 1.52 |
+| LN slope from 0 | 30 | 0 | 0.729 |
+| LN two-stage | 30 | 0 | 0 |
+| no norm | 30 | 0 | 0 |
+| static norm | 30 | 0 | 0 |
+
+Runs predicted trapped:
+- LN MSE 3000, seed 2, repeat 2: Lambda* = 14.7
+
+## Outcomes Part 2 (fill AFTER Stage B; do not edit anything above this line)
+| id | outcome (held / failed / partly) | numbers |
+|---|---|---|
