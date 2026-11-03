@@ -10,7 +10,19 @@ import jax.numpy as jnp
 jax.config.update("jax_enable_x64", True)
 
 H, EPS = 16, 1e-6
-A_TRUE, B_TRUE = 1.03, 0.01
+A_TRUE, B_TRUE = (float(v) for v in os.environ.get("T2_PLANT", "1.03,0.01").split(","))   # true plant (env T2_PLANT="A,B")
+LEGACY = (A_TRUE, B_TRUE) == (1.03, 0.01)
+
+
+def lqr_gain_true():
+    """K* of the true plant with Q = 5, R = 0.1: the literal 10.2875 used by every earlier theory output at the reference
+    plant (bit-identical), the scalar DARE otherwise."""
+    if LEGACY:
+        return 10.2875
+    b2 = B_TRUE ** 2
+    coef = R_U - Q_X * b2 - A_TRUE ** 2 * R_U
+    P = (-coef + np.sqrt(coef ** 2 + 4 * b2 * Q_X * R_U)) / (2 * b2)
+    return A_TRUE * B_TRUE * P / (R_U + b2 * P)
 Q_X, R_U, Q_F, N_HOR = 5.0, 0.1, 50.0, 200
 U_BOUND, HIDDEN, N_X0, X0_RANGE = 10.0, 64, 1000, 3.0
 DATA = os.environ.get("T2_DATA", paths.DATA)

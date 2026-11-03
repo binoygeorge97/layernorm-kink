@@ -31,6 +31,15 @@ def _symgrid(lo, hi, t, n):
     return g(np.linspace(f(lo), f(hi), n))
 
 
+PLANT_A, PLANT_B = 1.03, 0.01     # true-plant slopes used to normalise maps and setpoint gains; set_plant(PLANT) for another plant
+
+
+def set_plant(plant):
+    """Normalise slope maps and setpoint-gain errors by this plant's A and B (default: the reference plant 1.03, 0.01)."""
+    global PLANT_A, PLANT_B
+    PLANT_A, PLANT_B = float(plant.A), float(plant.B)
+
+
 def slope_maps(model1, xlim, ulim, n=301, sym=True):
     """Grids and fields for one seed (model1 = Model.seed_view): J_u / B, J_x - A, F(x, u) - x."""
     xs = _symgrid(*xlim, LIN_X, n) if sym else np.linspace(*xlim, n)
@@ -38,7 +47,7 @@ def slope_maps(model1, xlim, ulim, n=301, sym=True):
     X, U = np.meshgrid(xs, us)
     F, jx, ju = model1.fj(X.ravel()[None], U.ravel()[None])
     sh = X.shape
-    return dict(X=X, U=U, Ju=(ju[0] / 0.01).reshape(sh), Jx=(jx[0] - 1.03).reshape(sh), G=(F[0] - X.ravel()).reshape(sh))
+    return dict(X=X, U=U, Ju=(ju[0] / PLANT_B).reshape(sh), Jx=(jx[0] - PLANT_A).reshape(sh), G=(F[0] - X.ravel()).reshape(sh))
 
 
 def phase_panel(ax, maps, trajs, plant, r=None, uh=None, field="Ju", kink=None, sym=True, own=None, legend=False,
@@ -303,7 +312,7 @@ def fig_setpoint_distance(T, out_dir, controller="LQR fixed", name="figP4_setpoi
     g = T[(T.controller == controller) & T.model.str.startswith("LN")]
     P = g.groupby(["model", "seed", "r"]).agg(d=("setpoint_kink_dist", "first"), bh=("Bh", "first"), gap=("gap", "median"),
                                               div=("diverged", "mean")).reset_index()
-    P["e"] = np.abs(P.bh / 0.01 - 1)
+    P["e"] = np.abs(P.bh / PLANT_B - 1)
     far = P[P.d > 1]
     slope, icpt = np.polyfit(np.log(far.d), np.log(far.e + 1e-6), 1)
     fig, ax = plt.subplots(1, 2, figsize=(13, 4.6))
@@ -406,7 +415,7 @@ def path_table(T, good=0.2):
     T = _gap_table(T)
     T = T[T.model.str.startswith("LN")].copy()
     T["ws_bin"] = pd.cut(T.wrong_sign_share, WS_BINS, labels=WS_LABELS)
-    T["setpoint_ok"] = np.abs(T.Bh / 0.01 - 1) < good
+    T["setpoint_ok"] = np.abs(T.Bh / PLANT_B - 1) < good
     return T
 
 

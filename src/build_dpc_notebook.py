@@ -121,7 +121,14 @@ SIGMA, KERNEL = 0.01, "epan"   # Level 1 data noise and label kernel
 LABEL_DIR = None               # e.g. "/kaggle/input/level1-out/level1_out" to reuse the Level 1 labels
 ONLY   = None                  # e.g. ["true plant (oracle)", "LN, MSE (3000)"] to run a subset
 REPS   = [0, 1, 2]             # DPC training repeats; 0 = the original run (reused if already in OUT)
+PLANT  = L.Plant(A=1.03, B=0.01, eps_nl=0.0)   # Task 2a: L.Plant(A=1.03, B=0.1, eps_nl=0.0) together with ROOT = "dpc_out_B01"
+ROOT   = None                  # None = MyDrive/dpc_out; another name = a sibling folder (labels and surrogates go inside it)
+SURROGATES_ONLY = False        # True: train/load the six surrogate families (+ the models in ONLY), then stop
 
+if ROOT:
+    OUT = os.path.join(os.path.dirname(OUT.rstrip("/")), ROOT)
+if (PLANT.A, PLANT.B) != (1.03, 0.01) and os.path.basename(OUT.rstrip("/")) == "dpc_out":
+    raise ValueError("a plant other than (1.03, 0.01) needs its own ROOT (e.g. 'dpc_out_B01'): never mix with dpc_out")
 CURRICULUM, N_X0, SURR = D.CURRICULUM, D.N_X0, D.surrogate_configs(3000, 1000, 12000)
 if QUICK:
     SEEDS = [0, 1]
@@ -136,9 +143,9 @@ D.ARCH = ARCH
 SUR_DIR = OUT                                           # surrogates and labels: shared by every architecture
 OUT = D.arch_dir(OUT, ARCH)                             # "gru" keeps the original folder; others get <folder>_<arch>
 os.makedirs(OUT, exist_ok=True)
-PLANT = L.Plant(A=1.03, B=0.01, eps_nl=0.0)
 MODELS = [m for m in D.MODELS if ONLY is None or m["name"] in ONLY]
-print("controller:", ARCH, "| results go to", OUT, "| surrogates from", SUR_DIR)
+print("plant: A =", PLANT.A, "B =", PLANT.B, "| LQR gain", round(D.lqr_gain(PLANT), 4), "| controller:", ARCH,
+      "| results go to", OUT, "| surrogates from", SUR_DIR)
 pd.DataFrame([dict(model=m["name"], surrogate=m.get("surrogate", "- (true plant)"),
                    surrogate_training=" -> ".join(f"{k} x {n}" for k, wx, wu, n in SURR[m["surrogate"]]["phases"]) if m.get("surrogate") else "-")
               for m in MODELS])""")
@@ -149,9 +156,17 @@ of the curriculum: the DPC loss on the controller's own model), then test them o
 model: median true-plant cost on 1000 typical starts, the same controller's cost on its own model, and failure counts.""")
 
 code("""t0 = time.time()
+if SURROGATES_ONLY:                                      # Task 2a stage A: surrogates (all six families) + ONLY models
+    os.makedirs(SUR_DIR, exist_ok=True)
+    display(D.train_all_surrogates(D.MODELS, SEEDS, PLANT, SIGMA, KERNEL, SUR_DIR, SURR, label_dir=LABEL_DIR)
+            .groupby("model")[["rel_mse", "Ju_sup_rel", "rstar_x", "rstar_u"]].median())
 D.run_dpc(MODELS, SEEDS, PLANT, SIGMA, KERNEL, OUT, SURR, label_dir=LABEL_DIR, curriculum=CURRICULUM, n_x0=N_X0,
           dtype=jnp.float64 if DTYPE == "float64" else jnp.float32, reps=REPS, sur_dir=SUR_DIR)
-print(f"done in {(time.time() - t0) / 60:.1f} min")""")
+print(f"done in {(time.time() - t0) / 60:.1f} min")
+if SURROGATES_ONLY:
+    z = shutil.make_archive(OUT.rstrip("/") + "_stageA", "zip", OUT)
+    print("SURROGATES_ONLY: stage A complete, zipped to", z, "- the rest of the notebook is skipped (this stop is intended).")
+    raise SystemExit("surrogates-only run finished")""")
 
 md("""## Check 1 - the surrogates are the Level 1 models
 Medians over seeds of the Level 1 metrics of the surrogates used here. With the full settings they should match the

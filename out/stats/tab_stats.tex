@@ -1,0 +1,25 @@
+\begin{tabular}{lllll}
+\toprule
+family & fixed LQR failed & fixed LQR catastrophic & DPC failed & DPC trapped \\
+\midrule
+LN MSE 3000 & 26.5 [19.7, 33.1] & 10.8 [4.2, 17.6] & 43.3 [13.3, 73.3] & 40.0 [10.0, 70.0] \\
+LN MSE 12000 & 6.5 [3.3, 10.6] & 1.1 [0.0, 3.0] & 0.0 [0.0, 0.0] & 0.0 [0.0, 0.0] \\
+LN slope from step 0 & 5.8 [1.7, 10.7] & 1.4 [0.0, 3.6] & 26.7 [3.3, 53.3] & 26.7 [3.3, 53.3] \\
+LN two-stage & 5.7 [0.9, 12.0] & 0.9 [0.0, 2.7] & 0.0 [0.0, 0.0] & 0.0 [0.0, 0.0] \\
+no norm & 2.6 [0.3, 5.9] & 0.0 [0.0, 0.0] & 0.0 [0.0, 0.0] & 0.0 [0.0, 0.0] \\
+static norm & 0.6 [0.0, 1.5] & 0.0 [0.0, 0.0] & 0.0 [0.0, 0.0] & 0.0 [0.0, 0.0] \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llrrrr}
+\toprule
+A & B & A better (of 10) & median difference, pp [95\,\% CI] & Wilcoxon $p$ & Holm $p$ \\
+\midrule
+LN two-stage & LN MSE 3000 & 10 & -3.61 [-291.69, -0.70] & 0.002 & 0.012 \\
+LN MSE 3000 & static norm & 0 & 3.05 [0.71, 291.43] & 0.002 & 0.012 \\
+LN MSE 3000 & no norm & 2 & 1.68 [0.33, 290.36] & 0.010 & 0.039 \\
+LN two-stage & static norm & 6 & -0.05 [-0.46, 0.04] & 0.432 & 0.432 \\
+LN two-stage & no norm & 9 & -0.42 [-0.98, -0.17] & 0.049 & 0.098 \\
+LN MSE 12000 & LN MSE 3000 & 8 & -3.47 [-291.71, -0.14] & 0.014 & 0.041 \\
+\bottomrule
+\end{tabular}

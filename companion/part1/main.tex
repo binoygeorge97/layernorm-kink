@@ -380,7 +380,7 @@ For a scalar model $(a,b)$ with weights $Q=5$, $R=0.1$ the discrete algebraic Ri
 \begin{equation}
 P = \frac{-c+\sqrt{c^2+4b^2QR}}{2b^2},\qquad K = \mathrm{DARE}(a,b) = \frac{abP}{R+b^2P}
 \end{equation}
-(dare\_K in level1\_core.py; $K=0$ if $b^2<10^{-14}$). Since $P>0$, the sign of $K$ is the sign of $ab$: a model input slope of the wrong sign gives a gain of the wrong sign. For the true plant $K^*=\mathrm{DARE}(1.03,0.01)=10.2875$ and the closed-loop pole is $A-BK^*=0.927$ (time constant about 13 steps). For small $R$ the gain behaves roughly like $K\approx a/b$ up to the weighting, so $K$ scales like $1/\hat B$.
+(dare\_K in level1\_core.py; $K=0$ if $b^2<10^{-14}$). Since $P>0$, the sign of $K$ is the sign of $ab$: a model input slope of the wrong sign gives a gain of the wrong sign. For the true plant $K^*=\mathrm{DARE}(1.03,0.01)=10.2875$ and the closed-loop pole is $A-BK^*=0.927$ (time constant about 13 steps). An overestimated input slope lowers $K$, but far less than in proportion: $\hat B=18.3B$ gives $K=3.99$ (with $a=A$), a factor 2.6 below $K^*$, not 18. It becomes dangerous when $K<3$, where the true pole $1.03-0.01K$ reaches 1, i.e. roughly $\hat B>30B$ ($K=3$ at $\hat B=28.6B$).
 
 \subsection{The surrogate's equilibrium input}
 An LQR around a setpoint needs the input that holds it in the model, $\hat u(r)$ with $\hat F(r,\hat u)=r$ (function equilibrium in phase\_core.py). $\hat F(r,u)-r$ is evaluated on 801 values of $u$ in $[-10,10]$; near the kink it can have several roots (3 roots for 15 of the 110 seed-setpoint pairs of LN MSE 3000). The root nearest to a data-only guess is taken: the guess is $(r-ar-c)/b$ from a least-squares plane $\hat F\approx ax+bu+c$ fitted over an $81\times81$ grid of the box. Three damped Newton steps (step clipped to $\pm0.03$) refine it. No true-plant information is used. The model slopes at the setpoint are then $\hat A=\hat J_x(r,\hat u)$, $\hat B=\hat J_u(r,\hat u)$.
@@ -514,7 +514,7 @@ Observations.
 \item On all ten seeds the ellipse computed from $E$ and $b$ sits on the measured hot spot (Figures~\ref{fig:fullbox} and \ref{fig:zoom}; centres within 0.1 of the origin, half-widths 0.10 to 0.66 in $x$ and 0.09 to 1.0 in $u$).
 \item Both slopes are affected; $\hat J_u$ relative to $B$ far more (maxima 6.7 to 200.9 times $B$, median 18.7) than $\hat J_x$ relative to $A$ (0.06 to 1.25), but $\hat J_x$ errors are large compared with the margin 0.03.
 \item Narrow kinks are taller (seed 2: $D=0.13$, peak 201; seed 6: $D=0.90$, peak 6.7), as the $1/D$ centre gain predicts.
-\item Outside the ellipse the error alternates in sign with direction (petals) and decays algebraically: about $1/d$ along the equilibrium line (Figure~\ref{fig:law}), faster than $1/d$ but slower than $1/d^2$ for the largest error on a circle at $d=2$ to $20$ (Figure~\ref{fig:petals}). Wrong-sign regions reach $d\approx4$ along the arms.
+\item Outside the ellipse the error alternates in sign with direction (petals) and decays algebraically: about $1/d$ along the equilibrium line (Figure~\ref{fig:law}), faster than $1/d$ but slower than $1/d^2$ for the largest error on a circle at $d=2$ to $20$ (Figure~\ref{fig:petals}). The wrong-sign arms reach 2 to 7 half-widths from the centre on 8 of 10 seeds (10 and 33 on the two narrowest, seeds 1 and 2); 56 to 99 percent of the wrong-sign area lies outside the kink ellipse. Along the setpoint line $u=-3x$ wrong-sign setpoint gains stop at about $d=4$, because the arms run mostly along $u\approx0$.
 \item The kink-free static-norm surrogate has comparable value errors and no such structure.
 \end{itemize}
 Conclusion. The defect is structural (it comes from the normalisation, not from a lack of data or training), located (closed form from the weights), and long-ranged (algebraic tails). A controller does not need to enter the ellipse to be affected: setpoints two to four half-widths away still see input-slope errors of order one.
@@ -568,7 +568,7 @@ Column 2, wrong-sign gain (LN MSE 3000, seed 9). The setpoint lies inside the bl
 
 Column 3, overestimated gain (LN MSE 3000, seed 8). The setpoint lies on a red petal: $\hat B/B=+18.3$, $\hat A=1.022$, so $K=3.94$ instead of 10.29. The true pole is $1.03-0.0394=0.991$: stable but slow, with a time constant of about 106 steps instead of 13. The state creeps towards the setpoint ($x_{200}=0.033$) and the cost is far above the oracle. Failed, not diverged.
 
-The scalar intuition behind all three: $K$ scales like $1/\hat B$. A wrong-sign $\hat B$ gives $K<0$ and divergence. An overestimated $\hat B$ gives a small $K$; the loop on the true plant has pole $1.03-0.01K$, which is harmless until $K$ drops below about 3 (pole $\ge1$), i.e. $\hat B/B$ above about 30 (example: seed 1 at $r=0.1$, $\hat B/B=29$, $K=3.0$, gap 560 percent). An underestimated $\hat B$ gives a large $K$, aggressive inputs that saturate, and a higher cost.
+The scalar intuition behind all three: $K$ has the sign of $\hat B$ and falls as $\hat B$ grows, but much more slowly than $1/\hat B$ ($\hat B=18.3B$ gives $K=3.99$ with the true $A$, a factor 2.6, not 18). A wrong-sign $\hat B$ gives $K<0$ and divergence. An overestimated $\hat B$ gives a small $K$; the loop on the true plant has pole $1.03-0.01K$, which is harmless until $K$ drops below about 3 (pole $\ge1$), i.e. $\hat B/B$ above about 30 (example: seed 1 at $r=0.1$, $\hat B/B=29$, $K=3.0$, gap 560 percent). An underestimated $\hat B$ gives a large $K$, aggressive inputs that saturate, and a higher cost.
 
 \subsection{Hypothesis, observation, conclusion}
 Hypothesis H1: a fixed LQR is damaged exactly when its design point $(r,\hat u(r))$ lies on the kink or on a petal, and the type of damage follows from the local $\hat J_u/B$ there.
@@ -771,7 +771,7 @@ $\hat A$ & $K=\mathrm{DARE}(\hat A,B)$ & true pole $1.03-0.01K$ & gap \\
 An $\hat A$ error of only $-0.03$ (the model believes the plant is marginally stable) already fails the 10 percent threshold, and $-0.08$ to $-0.13$ is catastrophic. Overestimates give aggressive gains that saturate and cost 10 to 30 percent more but rarely diverge. Errors of 0.03 to 0.5 occur near the kink, i.e. 1 to 17 times the margin $A-1$.
 
 \subsection{Hypothesis, observation, conclusion}
-Hypothesis H3: the $\hat J_u$ kink is the main cause of the LQR failures (low authority makes $K\propto1/\hat B$ hypersensitive); $\hat J_x$ is secondary.
+Hypothesis H3: the $\hat J_u$ kink is the main cause of the LQR failures (with low authority a wrong-signed $\hat B$ flips the sign of $K$, and an overestimated $\hat B$ lowers $K$ towards the stability limit $K=3$); $\hat J_x$ is secondary.
 
 Observations.
 \begin{itemize}

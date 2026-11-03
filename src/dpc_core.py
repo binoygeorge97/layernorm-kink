@@ -5,7 +5,7 @@ Pipeline (the user's DPC example, applied to the LayerNorm-kink study):
      draws), 10 seeds per model.
   2. Train a GRU controller by unrolling it through the FULL surrogate x_{k+1} = F(x_k, u_k) (no linear extraction,
      so the controller sees the kink), with the LQR-type loss and the horizon curriculum of the example.
-  3. Test every controller on the TRUE plant x+ = 1.03 x + 0.01 u. Reference = the same controller trained through the
+  3. Test every controller on the TRUE plant x+ = A x + B u (default 1.03 x + 0.01 u). Reference = the same controller trained through the
      true plant ("oracle"); the headline number is the true-plant cost gap.
 
 Changes from the example, each needed for this study: rollout through the whole network (not W, V after LayerNorm);
@@ -37,7 +37,17 @@ X0_EVAL = np.array(sorted({s * v for v in (0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0,
 N_TEST = 1000                                             # "typical" test starts, x0 ~ U[-3, 3], same for every seed
 DIVERGE = 10.0                                            # |x| above this anywhere = diverged
 SETTLED = 0.05                                            # |x_N| above this at the end = not regulated
-LQR_K = 10.29                                             # analytic LQR gain for (1.03, 0.01, Q=5, R=0.1)
+LQR_K = 10.29                                             # analytic LQR gain for (1.03, 0.01, Q=5, R=0.1), as used in every
+                                                          # earlier output (rounded); other plants: lqr_gain(plant) = DARE
+LEGACY_PLANT = (1.03, 0.01, 0.01)                         # (A, B, sigma) of every surrogate file saved without a 'plant' key
+
+
+def lqr_gain(plant):
+    """Infinite-horizon LQR gain of the TRUE plant with the DPC weights (Q_x, R_u). The reference plant (1.03, 0.01) keeps
+    the rounded 10.29 used by all earlier results (bit-identical); any other plant uses level1_core.dare_K."""
+    if (float(plant.A), float(plant.B)) == LEGACY_PLANT[:2]:
+        return LQR_K
+    return float(L.dare_K(plant.A, plant.B, CONFIG["Q_x"], CONFIG["R_u"]))
 
 # The models compared. 'surrogate' names a Level 1 configuration (level1_configs or wave_configs).
 MODELS = [dict(name="true plant (oracle)", short="oracle", kind="true", group="oracle"),
@@ -128,8 +138,13 @@ def train_surrogates(cfg, seeds, plant, sigma, kernel, out_dir, label_dir=None, 
     Cached in out_dir/surrogates/<name>.npz; also returns the Level 1 metrics of the trained models."""
     os.makedirs(os.path.join(out_dir, "surrogates"), exist_ok=True)
     fn = os.path.join(out_dir, "surrogates", safe(cfg["name"]) + ".npz")
+    want = (float(plant.A), float(plant.B), float(sigma))
     if os.path.exists(fn):
         z = np.load(fn, allow_pickle=True)
+        have = tuple(float(v) for v in z["plant"]) if "plant" in z.files else LEGACY_PLANT
+        if not np.allclose(have, want, rtol=0, atol=1e-12):
+            raise ValueError(f"{fn} was trained on plant (A, B, sigma) = {have}, not {want}: use a fresh output folder "
+                             "(and LABEL_DIR) for a different plant")
         if list(z["seeds"]) == list(seeds):
             P = _unflat({k[2:]: z[k] for k in z.files if k.startswith("p:")})
             return P, z["S0"], {k[2:]: z[k] for k in z.files if k.startswith("m:")}
@@ -166,7 +181,7 @@ def train_surrogates(cfg, seeds, plant, sigma, kernel, out_dir, label_dir=None, 
     keep = ("rel_mse", "Ju_sup_rel", "Ju_rms_rel", "Jx_sup", "flip_area_interior", "lqr_unstable",
             "zmin_x", "zmin_u", "rstar_x", "rstar_u", "crest")
     met = {k: np.asarray(met[k], float) for k in keep if k in met}
-    np.savez_compressed(fn, seeds=np.array(seeds), S0=np.array(S0), train_s=np.array(time.time() - t0),
+    np.savez_compressed(fn, seeds=np.array(seeds), S0=np.array(S0), train_s=np.array(time.time() - t0), plant=np.array(want),
                         **{"p:" + k: v for k, v in _flat(P).items()}, **{"m:" + k: v for k, v in met.items()})
     return P, np.array(S0), met
 
@@ -176,7 +191,7 @@ def train_surrogates(cfg, seeds, plant, sigma, kernel, out_dir, label_dir=None, 
 #    hidden size (0 = memoryless: h is a dummy [B, 0] array, so rollout / phase code needs no special case).     #
 #    'gru'    the example's StandaloneGRUController in plain JAX (hidden 64): the original study.               #
 #    'mlp'    u = 10 tanh(MLP(x)), tanh hidden layers, memoryless: a plain policy u = pi(x), so phase plots show #
-#             a function and K_eff = -d pi/dx is comparable to the LQR gain 10.29.                               #
+#             a function and K_eff = -d pi/dx is comparable to the LQR gain (10.29 at B = 0.01).                #
 #    'linear' u = 10 tanh((k x + b) / 10) ~ sat(-K x + c), 2 parameters per input: the whole DPC problem is a    #
 #             2-D landscape that can be plotted exhaustively.                                                   #
 # ------------------------------------------------------------------------------------------------ #
@@ -438,8 +453,9 @@ def per_start_cost(xs, us, cfg=CONFIG):
     return (cfg["Q_x"] * xs[:-1] ** 2 + cfg["R_u"] * us ** 2).sum(0) + cfg["Q_f"] * xs[-1] ** 2
 
 
-def lqr_saturated(plant, x0, N=CONFIG["N"], K=LQR_K):
-    """Reference: analytic LQR u = clip(-K x, +-10) on the true plant."""
+def lqr_saturated(plant, x0, N=CONFIG["N"], K=None):
+    """Reference: analytic LQR u = clip(-K x, +-10) on the true plant; K = lqr_gain(plant) by default."""
+    K = lqr_gain(plant) if K is None else K
     xs, us = [np.asarray(x0, float)], []
     for _ in range(N):
         u = np.clip(-K * xs[-1], -U_BOUND, U_BOUND)
@@ -542,6 +558,23 @@ def load_controllers(out_dir, name, rep):
         return None, None
     z = np.load(fn)
     return _unflat({k[2:]: z[k] for k in z.files if k.startswith("c:")}), list(z["seeds"])
+
+
+def train_all_surrogates(models, seeds, plant, sigma, kernel, sur_dir, surr_cfgs, label_dir=None, M=2048, chunk=250, lam=1.0):
+    """'Surrogates only' (Task 2a): train or load the surrogates of every model in `models` that has one (no DPC), and write
+    their Level 1 metrics to <sur_dir>/surrogates.csv."""
+    import pandas as pd
+    rows = []
+    for m in models:
+        if m.get("kind") == "true" or not m.get("surrogate"):
+            continue
+        t0 = time.time()
+        P, S0, met = train_surrogates(surr_cfgs[m["surrogate"]], seeds, plant, sigma, kernel, sur_dir, label_dir, M, chunk, lam)
+        rows += [dict(model=m["name"], seed=s, **{k: float(v[i]) for k, v in met.items()}) for i, s in enumerate(seeds)]
+        print(f"  surrogate '{m['surrogate']}': peak |J_u/B - 1| median {np.median(met['Ju_sup_rel']):.3g} | "
+              f"{time.time() - t0:.0f}s", flush=True)
+    pd.DataFrame(rows).to_csv(os.path.join(sur_dir, "surrogates.csv"), index=False)
+    return pd.DataFrame(rows)
 
 
 def run_dpc(models, seeds, plant, sigma, kernel, out_dir, surr_cfgs, label_dir=None, curriculum=CURRICULUM,

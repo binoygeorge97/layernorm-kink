@@ -12,3 +12,9 @@ __pycache__/
 # large data: keep out of git, track with data/MANIFEST.md
 data/dpc_out/
 data/dpc_out_*/
+
+# large outputs (delivered in the results zip, not tracked)
+out/**/*.npz
+out/**/*.pdf
+out/**/*.gif
+out/companion/**/main.*

@@ -96,6 +96,7 @@ RUN_TRACK   = True             # train the tracking DPC controllers
 TRACK_REPS  = [0]              # tracking-DPC repeats (add 1, 2 later for robustness, like the regulation run)
 
 PLANT = L.Plant(A=1.03, B=0.01, eps_nl=0.0)
+PR.set_plant(PLANT)                                     # slope maps and setpoint-gain errors in units of this plant
 SUR_DIR = OUT                  # surrogates and the GRU regulation controllers are read from here
 DC.ARCH = ARCH
 OUT = DC.arch_dir(OUT, ARCH)   # "gru" writes into the DPC folder; other architectures into <folder>_<arch>

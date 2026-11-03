@@ -13,7 +13,7 @@ import numpy as np, pandas as pd, jax, jax.numpy as jnp
 import t2core as T
 from t2_test import max_subarray, costate, X_LAND, labels, OUT
 
-K_STAR = 10.2875
+K_STAR = T.lqr_gain_true()          # 10.2875 at the reference plant
 
 
 def lin_u(theta, x):

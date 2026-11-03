@@ -558,7 +558,7 @@ def fig_policy_maps(out_dir, sur_dir, seeds, plant, models, rep=0, xlim=2.0, nam
             i = ss.index(s)
             _, _, ju = ev(L.stack_trees([L.unstack_tree(P, i)]), jnp.asarray(xs[None]), jnp.asarray(u[None]), jnp.asarray([S0[i]]))
             g = np.asarray(ju)[0] / plant.B
-            ax.plot(xs, np.clip(-D.LQR_K * xs, -10, 10), color="#8a8984", ls="--", lw=1)
+            ax.plot(xs, np.clip(-D.lqr_gain(plant) * xs, -10, 10), color="#8a8984", ls="--", lw=1)
             ax.plot(xs, u, color="#0b0b0b", lw=1.4, zorder=2)
             bad = np.abs(g - 1) > 0.5                                   # colour only where the surrogate is off by > 50 %
             sc = ax.scatter(xs[bad], u[bad], c=np.clip(g[bad], -3, 5), cmap="RdBu_r", norm=norm_, s=14, zorder=3,
@@ -574,7 +574,7 @@ def fig_policy_maps(out_dir, sur_dir, seeds, plant, models, rep=0, xlim=2.0, nam
             if j == 0:
                 ax.set_ylabel("u = pi(x)", fontsize=7.5)
     fig.colorbar(sc, ax=axes, fraction=0.015, pad=0.01).set_label("surrogate / true input gain along the policy", fontsize=8)
-    fig.suptitle("Learned regulation policies (black) vs the saturated LQR (grey dashed, gain 10.29). Coloured dots = points of the "
+    fig.suptitle(f"Learned regulation policies (black) vs the saturated LQR (grey dashed, gain {D.lqr_gain(plant):.4g}). Coloured dots = points of the "
                  "policy where the surrogate's input gain is off by > 50 % (red too large, blue wrong sign); grey band = kink half-width",
                  fontsize=9, y=1.0 + 0.3 / fig.get_figheight())
     _save(fig, out_dir, name)

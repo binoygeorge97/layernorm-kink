@@ -179,9 +179,12 @@ def select_k(x, u, y, ks=K_GRID, kernel="epan", n_query=2000, seed=0):
 def get_labels(d, seed, sigma, kernel, cache_dir):
     """Labels at every training input, computed once per dataset and cached to disk."""
     fn = os.path.join(cache_dir, f"labels_seed{seed}_sigma{sigma:g}_{kernel}.npz")
+    fp = np.asarray(d["y"][:16], float)                  # data fingerprint: the labels belong to THIS dataset (plant, noise)
     if os.path.exists(fn):
         z = np.load(fn)
-        return {k: z[k] for k in z.files}
+        if "data_fp" in z.files and not np.array_equal(z["data_fp"], fp):
+            raise ValueError(f"{fn} was computed from different data (another plant or noise level?): use a fresh LABEL_DIR")
+        return {k: z[k] for k in z.files if k != "data_fp"}
     t0 = time.time()
     k, table, s2 = select_k(d["x"], d["u"], d["y"], kernel=kernel)
     lab = LabelEstimator(d["x"], d["u"], d["y"], k, kernel)(d["x"], d["u"])
@@ -190,7 +193,7 @@ def get_labels(d, seed, sigma, kernel, cache_dir):
                ktab_bias2_Ju=np.array([r["bias2_Ju"] for r in table]), ktab_var_Ju=np.array([r["var_Ju"] for r in table]),
                ktab_bias2_Jx=np.array([r["bias2_Jx"] for r in table]), ktab_var_Jx=np.array([r["var_Jx"] for r in table]),
                time_s=np.array(time.time() - t0))
-    np.savez_compressed(fn, **out)
+    np.savez_compressed(fn, data_fp=fp, **out)
     return out
 
 
@@ -387,7 +390,9 @@ def lqr_screen(a_h, b_h, plant, r, us):
     a_t, b_t = plant.Jx(r, us), plant.Ju(r, us)
     pole = a_t - b_t * dare_K(a_h, b_h)
     pole_o = a_t - b_t * dare_K(a_t, b_t)
-    W = 0.25 * plant.B * UMAX / max(plant.A - 1.0, 1e-6) / 3.33
+    W = 0.25 * plant.B * UMAX / max(plant.A - 1.0, 1e-6) / 3.33     # 0.25 at the reference plant (holdable |x| = 3.33)
+    if plant.B * UMAX / max(plant.A - 1.0, 1e-6) > XMAX:             # higher authority: the setpoint range is the data box
+        W = 0.25 * XMAX / 3.33
     k = max(1, int(round(W / max(r[1] - r[0], 1e-12))))
     ker = np.ones(2 * k + 1)
     nrm = np.convolve(np.ones_like(a_h), ker, "same")

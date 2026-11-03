@@ -1,0 +1,13 @@
+family,metric,count,runs,pct,ci_lo,ci_hi
+LN MSE 3000,failed,13,30,43.333333333333336,13.333333333333334,73.33333333333333
+LN MSE 3000,trapped,12,30,40.0,10.0,70.0
+LN MSE 12000,failed,0,30,0.0,0.0,0.0
+LN MSE 12000,trapped,0,30,0.0,0.0,0.0
+LN slope from step 0,failed,8,30,26.666666666666668,3.3333333333333335,53.333333333333336
+LN slope from step 0,trapped,8,30,26.666666666666668,3.3333333333333335,53.333333333333336
+LN two-stage,failed,0,30,0.0,0.0,0.0
+LN two-stage,trapped,0,30,0.0,0.0,0.0
+no norm,failed,0,30,0.0,0.0,0.0
+no norm,trapped,0,30,0.0,0.0,0.0
+static norm,failed,0,30,0.0,0.0,0.0
+static norm,trapped,0,30,0.0,0.0,0.0

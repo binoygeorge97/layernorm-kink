@@ -24,7 +24,7 @@ from t2_test import max_subarray, costate, X_LAND, OUT
 import dpc_core as DC
 
 THRESHOLD = 12.1          # fixed on LN MSE 3000 GRU runs (geometric midpoint of 8.6 and 17.0); do not re-tune
-K_STAR = 10.2875
+K_STAR = T.lqr_gain_true()          # 10.2875 at the reference plant
 
 
 def pi(c, x):
@@ -127,7 +127,10 @@ def unit_check(D):
         col = "S_seg_max" if "S_seg_max" in M else "S_seg_max_linear_LQR"
         J = D.merge(M[["family", "rep", "seed", col]], on=["family", "rep", "seed"])
         err = (J.Lambda_star - J[col]).abs()
-        tol = 1e-9 if col == "S_seg_max" else 5e-4          # reference CSV is rounded to 3 decimals
+        # 1e-8: dpc_core stores k = -K*/10 and evaluates (x k) 10 / 10, t2_memoryless evaluates -K* x / 10; the policies differ
+        # by <= 5e-15 per step, which moves Lambda* by <= 2.3e-10 relative (2.0e-9 absolute, 1 run of 180, 2026-11-03).
+        # The reference CSV is rounded to 3 decimals.
+        tol = 1e-8 if col == "S_seg_max" else 5e-4
         print(f"unit check vs {fn}: {len(J)} runs, max |diff| {err.max():.2e} (tolerance {tol:g}) -> "
               + ("PASS" if len(J) == len(D) and err.max() <= tol else "FAIL"))
 

@@ -1,7 +1,7 @@
 """phase_core.py - closed loops with a reference (setpoint), and what the controller sees along the way.
 
 Three kinds of controller, all designed or trained from a surrogate F(x, u) and all run on the TRUE plant
-x+ = 1.03 x + 0.01 u (and, for comparison, on the surrogate itself):
+x+ = A x + B u (default 1.03 x + 0.01 u; and, for comparison, on the surrogate itself):
 
   lqr_fixed   LQR designed once at the setpoint: linearise the surrogate at its own equilibrium (r, u_hat(r)) where
               F(r, u_hat) = r, K = DARE(A_hat, B_hat), then u = clip(u_hat - K (x - r), +-10). Only the surrogate's
@@ -12,7 +12,8 @@ x+ = 1.03 x + 0.01 u (and, for comparison, on the surrogate itself):
               reference-tracking controllers trained here: input (x - r, r), loss around the surrogate's equilibrium).
 
 The reference controller is the same design on the TRUE plant (analytic LQR, or DPC trained through the true plant).
-Everything uses the cost of dpc_core: sum_k Q (x_k - r)^2 + R (u_k - u_ss(r))^2 + Q_f (x_N - r)^2, u_ss(r) = 3 r.
+Everything uses the cost of dpc_core: sum_k Q (x_k - r)^2 + R (u_k - u_ss(r))^2 + Q_f (x_N - r)^2, u_ss(r) = (1 - A) r / B
+(= -3 r at the reference plant 1.03, 0.01).
 """
 import os
 import time
@@ -228,9 +229,22 @@ def kink_visits(model, xs, us):
     return inside.mean(0)
 
 
-def lqr_study(models, plant, refs=R_EVAL, starts=X0_TRACK, N=N):
+def settle_time(xs, r, x0, band=0.05):
+    """First step k after which |x_j - r| <= band * |x0 - r| for every j >= k (threshold-free speed metric, Task 4.3);
+    NaN if the run never settles in the band or diverges. xs [N+1, S, n], r and x0 [S, n]."""
+    err = np.abs(xs - r[None])
+    ok = err <= band * np.abs(x0 - r)[None]
+    tail_ok = np.flip(np.cumprod(np.flip(ok, 0), 0), 0).astype(bool)          # ok from k to the end
+    first = np.argmax(tail_ok, 0).astype(float)
+    first[~tail_ok.any(0) | ~np.isfinite(xs).all(0)] = np.nan
+    return first
+
+
+def lqr_study(models, plant, refs=R_EVAL, starts=X0_TRACK, N=N, extra=False):
     """Fixed and scheduled LQR from every surrogate, every seed, every (setpoint, start), on the TRUE plant.
-    Returns a long table (one row per model, seed, controller, setpoint, start) and the trajectories."""
+    Returns a long table (one row per model, seed, controller, setpoint, start) and the trajectories.
+    extra=True appends the column settle_time (settle_time(): steps to stay within 5 % of |x0 - r|); the other columns
+    are unchanged."""
     import pandas as pd
     truth = Model.true_plant(plant, models[0].seeds)
     S = len(truth.seeds)
@@ -249,6 +263,7 @@ def lqr_study(models, plant, refs=R_EVAL, starts=X0_TRACK, N=N):
             share = kink_visits(m, xs, us)
             jx, ju = seen_gain(m, xs, us)
             wrong = (ju <= 0).mean(0)
+            st = settle_time(xs, r, x0) if extra else None
             trajs[(m.name, kind)] = dict(xs=xs.astype(np.float32), us=us.astype(np.float32), r=r, x0=x0, info=info)
             for i, s in enumerate(m.seeds):
                 d_eq = np.hypot((rr.ravel() - zx[i]) / rx[i], (plant.u_ss(rr.ravel()) - zu[i]) / ru[i]) if np.isfinite(rx[i]) else np.nan + 0 * rr.ravel()
@@ -260,6 +275,8 @@ def lqr_study(models, plant, refs=R_EVAL, starts=X0_TRACK, N=N):
                                      wrong_sign_share=wrong[i, j], uh=info["uh"][i, j], u_ss=plant.u_ss(r[i, j]),
                                      n_eq=info["nroot"][i, j], Ah=info["ah"][i, j], Bh=info["bh"][i, j],
                                      K_fixed=info["K_fixed"][i, j], setpoint_kink_dist=d_eq[j]))
+                    if extra:
+                        rows[-1]["settle_time"] = st[i, j]
             print(f"  {m.name:22s} LQR {kind:5s}: median gap {100 * np.nanmedian(met['gap']):8.3g} %, diverged "
                   f"{int(met['diverged'].sum())}/{met['diverged'].size} | {time.time() - t0:.0f}s", flush=True)
     return pd.DataFrame(rows), trajs, dict(xs=xs_o, us=us_o, r=r, x0=x0, cost=J_o)
@@ -287,7 +304,7 @@ def rollout_track(c, dyn, p, s0, x0, r, N, hidden=None):
 
 def track_loss(c, dyn, p, s0, x0, r, uh, N):
     """(sum_k mean(Q (x_k - r)^2 + R (u_k - u_hat(r))^2) + mean(Q_f (x_N - r)^2)) / N. u_hat = the SURROGATE's
-    equilibrium input (the true plant's 3 r for the oracle): DPC only knows its model."""
+    equilibrium input (the true plant's u_ss(r) = (1 - A) r / B for the oracle): DPC only knows its model."""
     xs, us = rollout_track(c, dyn, p, s0, x0, r, N)
     stage = jnp.sum(jnp.mean(Q * (xs[:-1, :, 0] - r[:, 0]) ** 2 + R * (us[:, :, 0] - uh[:, 0]) ** 2, axis=1))
     return (stage + jnp.mean(QF * (xs[-1, :, 0] - r[:, 0]) ** 2)) / N

@@ -1,0 +1,133 @@
+family,controller,r,metric,pct,ci_lo,ci_hi,n
+LN MSE 3000,LQR fixed,-2.0,failed,0.0,0.0,0.0,80
+LN MSE 3000,LQR fixed,-1.0,failed,0.0,0.0,0.0,80
+LN MSE 3000,LQR fixed,-0.5,failed,16.25,3.75,30.0,80
+LN MSE 3000,LQR fixed,-0.25,failed,41.25,20.0,63.74999999999999,80
+LN MSE 3000,LQR fixed,-0.1,failed,65.0,46.25,85.0,80
+LN MSE 3000,LQR fixed,0.0,failed,66.25,51.24999999999999,82.5,80
+LN MSE 3000,LQR fixed,0.1,failed,56.25,35.0,77.5,80
+LN MSE 3000,LQR fixed,0.25,failed,33.75,13.750000000000002,55.00000000000001,80
+LN MSE 3000,LQR fixed,0.5,failed,10.0,1.25,20.0,80
+LN MSE 3000,LQR fixed,1.0,failed,1.25,0.0,3.75,80
+LN MSE 3000,LQR fixed,2.0,failed,1.25,0.0,3.75,80
+LN MSE 3000,LQR sched,-2.0,failed,2.5,0.0,7.5,80
+LN MSE 3000,LQR sched,-1.0,failed,12.5,6.25,18.75,80
+LN MSE 3000,LQR sched,-0.5,failed,31.25,22.46875000000003,41.25,80
+LN MSE 3000,LQR sched,-0.25,failed,35.0,22.5,46.25,80
+LN MSE 3000,LQR sched,-0.1,failed,26.25,15.0,36.25,80
+LN MSE 3000,LQR sched,0.0,failed,31.25,20.0,42.5,80
+LN MSE 3000,LQR sched,0.1,failed,33.75,25.0,42.5,80
+LN MSE 3000,LQR sched,0.25,failed,31.25,22.5,40.0,80
+LN MSE 3000,LQR sched,0.5,failed,8.75,2.5,15.0,80
+LN MSE 3000,LQR sched,1.0,failed,10.0,2.5,17.5,80
+LN MSE 3000,LQR sched,2.0,failed,2.5,0.0,6.25,80
+LN MSE 12000,LQR fixed,-2.0,failed,5.0,0.0,12.5,80
+LN MSE 12000,LQR fixed,-1.0,failed,1.25,0.0,3.75,80
+LN MSE 12000,LQR fixed,-0.5,failed,1.25,0.0,3.75,80
+LN MSE 12000,LQR fixed,-0.25,failed,1.25,0.0,3.75,80
+LN MSE 12000,LQR fixed,-0.1,failed,8.75,0.0,20.0,80
+LN MSE 12000,LQR fixed,0.0,failed,25.0,6.25,47.5,80
+LN MSE 12000,LQR fixed,0.1,failed,15.0,3.75,27.500000000000004,80
+LN MSE 12000,LQR fixed,0.25,failed,2.5,0.0,6.25,80
+LN MSE 12000,LQR fixed,0.5,failed,1.25,0.0,3.75,80
+LN MSE 12000,LQR fixed,1.0,failed,3.75,0.0,11.25,80
+LN MSE 12000,LQR fixed,2.0,failed,6.25,0.0,16.25,80
+LN MSE 12000,LQR sched,-2.0,failed,5.0,0.0,12.5,80
+LN MSE 12000,LQR sched,-1.0,failed,1.25,0.0,3.75,80
+LN MSE 12000,LQR sched,-0.5,failed,1.25,0.0,3.75,80
+LN MSE 12000,LQR sched,-0.25,failed,2.5,0.0,6.25,80
+LN MSE 12000,LQR sched,-0.1,failed,5.0,0.0,12.5,80
+LN MSE 12000,LQR sched,0.0,failed,6.25,0.0,12.5,80
+LN MSE 12000,LQR sched,0.1,failed,3.75,0.0,11.25,80
+LN MSE 12000,LQR sched,0.25,failed,2.5,0.0,6.25,80
+LN MSE 12000,LQR sched,0.5,failed,1.25,0.0,3.75,80
+LN MSE 12000,LQR sched,1.0,failed,3.75,0.0,11.25,80
+LN MSE 12000,LQR sched,2.0,failed,6.25,0.0,16.25,80
+LN slope from step 0,LQR fixed,-2.0,failed,1.25,0.0,3.75,80
+LN slope from step 0,LQR fixed,-1.0,failed,0.0,0.0,0.0,80
+LN slope from step 0,LQR fixed,-0.5,failed,0.0,0.0,0.0,80
+LN slope from step 0,LQR fixed,-0.25,failed,0.0,0.0,0.0,80
+LN slope from step 0,LQR fixed,-0.1,failed,10.0,0.0,30.0,80
+LN slope from step 0,LQR fixed,0.0,failed,37.5,12.5,62.5,80
+LN slope from step 0,LQR fixed,0.1,failed,13.750000000000002,0.0,28.749999999999996,80
+LN slope from step 0,LQR fixed,0.25,failed,1.25,0.0,3.75,80
+LN slope from step 0,LQR fixed,0.5,failed,0.0,0.0,0.0,80
+LN slope from step 0,LQR fixed,1.0,failed,0.0,0.0,0.0,80
+LN slope from step 0,LQR fixed,2.0,failed,0.0,0.0,0.0,80
+LN slope from step 0,LQR sched,-2.0,failed,1.25,0.0,3.75,80
+LN slope from step 0,LQR sched,-1.0,failed,0.0,0.0,0.0,80
+LN slope from step 0,LQR sched,-0.5,failed,1.25,0.0,3.75,80
+LN slope from step 0,LQR sched,-0.25,failed,2.5,0.0,6.25,80
+LN slope from step 0,LQR sched,-0.1,failed,5.0,1.25,8.75,80
+LN slope from step 0,LQR sched,0.0,failed,2.5,0.0,6.25,80
+LN slope from step 0,LQR sched,0.1,failed,12.5,3.75,21.25,80
+LN slope from step 0,LQR sched,0.25,failed,5.0,1.25,8.75,80
+LN slope from step 0,LQR sched,0.5,failed,1.25,0.0,3.75,80
+LN slope from step 0,LQR sched,1.0,failed,0.0,0.0,0.0,80
+LN slope from step 0,LQR sched,2.0,failed,0.0,0.0,0.0,80
+LN two-stage,LQR fixed,-2.0,failed,5.0,0.0,12.5,80
+LN two-stage,LQR fixed,-1.0,failed,3.75,0.0,10.0,80
+LN two-stage,LQR fixed,-0.5,failed,3.75,0.0,10.0,80
+LN two-stage,LQR fixed,-0.25,failed,3.75,0.0,7.5,80
+LN two-stage,LQR fixed,-0.1,failed,5.0,0.0,13.750000000000002,80
+LN two-stage,LQR fixed,0.0,failed,22.5,5.0,43.75,80
+LN two-stage,LQR fixed,0.1,failed,3.75,0.0,11.25,80
+LN two-stage,LQR fixed,0.25,failed,1.25,0.0,3.75,80
+LN two-stage,LQR fixed,0.5,failed,3.75,0.0,11.25,80
+LN two-stage,LQR fixed,1.0,failed,5.0,0.0,12.5,80
+LN two-stage,LQR fixed,2.0,failed,5.0,0.0,12.5,80
+LN two-stage,LQR sched,-2.0,failed,5.0,0.0,12.5,80
+LN two-stage,LQR sched,-1.0,failed,3.75,0.0,10.0,80
+LN two-stage,LQR sched,-0.5,failed,2.5,0.0,6.25,80
+LN two-stage,LQR sched,-0.25,failed,2.5,0.0,7.5,80
+LN two-stage,LQR sched,-0.1,failed,5.0,0.0,15.0,80
+LN two-stage,LQR sched,0.0,failed,3.75,0.0,11.25,80
+LN two-stage,LQR sched,0.1,failed,3.75,0.0,8.75,80
+LN two-stage,LQR sched,0.25,failed,1.25,0.0,3.75,80
+LN two-stage,LQR sched,0.5,failed,2.5,0.0,7.5,80
+LN two-stage,LQR sched,1.0,failed,3.75,0.0,10.0,80
+LN two-stage,LQR sched,2.0,failed,5.0,0.0,12.5,80
+no norm,LQR fixed,-2.0,failed,2.5,0.0,6.25,80
+no norm,LQR fixed,-1.0,failed,3.75,0.0,7.5,80
+no norm,LQR fixed,-0.5,failed,3.75,0.0,8.75,80
+no norm,LQR fixed,-0.25,failed,3.75,0.0,8.75,80
+no norm,LQR fixed,-0.1,failed,2.5,0.0,7.5,80
+no norm,LQR fixed,0.0,failed,2.5,0.0,7.5,80
+no norm,LQR fixed,0.1,failed,2.5,0.0,7.5,80
+no norm,LQR fixed,0.25,failed,2.5,0.0,7.5,80
+no norm,LQR fixed,0.5,failed,0.0,0.0,0.0,80
+no norm,LQR fixed,1.0,failed,2.5,0.0,6.25,80
+no norm,LQR fixed,2.0,failed,2.5,0.0,6.25,80
+no norm,LQR sched,-2.0,failed,1.25,0.0,3.75,80
+no norm,LQR sched,-1.0,failed,6.25,1.25,11.25,80
+no norm,LQR sched,-0.5,failed,5.0,0.0,12.5,80
+no norm,LQR sched,-0.25,failed,6.25,0.0,13.750000000000002,80
+no norm,LQR sched,-0.1,failed,6.25,0.0,15.0,80
+no norm,LQR sched,0.0,failed,6.25,0.0,15.0,80
+no norm,LQR sched,0.1,failed,7.5,0.0,17.5,80
+no norm,LQR sched,0.25,failed,6.25,0.0,16.25,80
+no norm,LQR sched,0.5,failed,5.0,0.0,15.0,80
+no norm,LQR sched,1.0,failed,5.0,0.0,15.0,80
+no norm,LQR sched,2.0,failed,7.5,0.0,17.5,80
+static norm,LQR fixed,-2.0,failed,1.25,0.0,3.75,80
+static norm,LQR fixed,-1.0,failed,0.0,0.0,0.0,80
+static norm,LQR fixed,-0.5,failed,1.25,0.0,3.75,80
+static norm,LQR fixed,-0.25,failed,1.25,0.0,3.75,80
+static norm,LQR fixed,-0.1,failed,1.25,0.0,3.75,80
+static norm,LQR fixed,0.0,failed,0.0,0.0,0.0,80
+static norm,LQR fixed,0.1,failed,0.0,0.0,0.0,80
+static norm,LQR fixed,0.25,failed,1.25,0.0,3.75,80
+static norm,LQR fixed,0.5,failed,0.0,0.0,0.0,80
+static norm,LQR fixed,1.0,failed,0.0,0.0,0.0,80
+static norm,LQR fixed,2.0,failed,0.0,0.0,0.0,80
+static norm,LQR sched,-2.0,failed,1.25,0.0,3.75,80
+static norm,LQR sched,-1.0,failed,1.25,0.0,3.75,80
+static norm,LQR sched,-0.5,failed,2.5,0.0,6.25,80
+static norm,LQR sched,-0.25,failed,2.5,0.0,6.25,80
+static norm,LQR sched,-0.1,failed,0.0,0.0,0.0,80
+static norm,LQR sched,0.0,failed,0.0,0.0,0.0,80
+static norm,LQR sched,0.1,failed,0.0,0.0,0.0,80
+static norm,LQR sched,0.25,failed,1.25,0.0,3.75,80
+static norm,LQR sched,0.5,failed,0.0,0.0,0.0,80
+static norm,LQR sched,1.0,failed,0.0,0.0,0.0,80
+static norm,LQR sched,2.0,failed,0.0,0.0,0.0,80
