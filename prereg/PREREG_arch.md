@@ -136,3 +136,5 @@ that do not amplify.
 
 Linear run-level predictions appended to `prereg/PREREG_arch_predicted.csv` (arch = "linear"; the rows of Part A, including
 arch = "linear_Kstar", are unchanged).
+
+Part B (linear) registered at commit 322e3530e5b185977bcb025379baa68277159a15 (2026-11-03), before any linear controller was trained through a surrogate.
