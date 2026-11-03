@@ -82,3 +82,5 @@ high-direct-gain policies", stated plainly.
 |---|---|---|
 
 ## Part B (linear controller): to be appended from the trained linear oracle (Run 2) before the linear Stage B run
+
+Part A (MLP) registered at commit f945a5cd587d2a3cd21423ae0fbc1ba1e21dfece (2026-11-03), before any MLP controller was trained through a surrogate.

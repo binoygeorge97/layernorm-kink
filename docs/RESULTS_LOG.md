@@ -52,3 +52,11 @@ unchanged | t2_test.py now loads the DPC controllers only for --line (no output 
 2026-11-03 | Task 3.2 warm start (complete) | see commit | warmstart_harness.py, 7 settings x 10 pairs, 100 epochs (harness 1 hit
 the 2 h limit, global3 rerun alone) | dpc_out | broken pairs pushed off: plain 5, clip3 0, unit 0, global3 4, mom 5, batch100
 4, lr1e-4 0 (of 6); healthy 0 of 28 | P2b held, P3b FAILED, P6 held (written into PREREG_opt outcomes; nothing above edited)
+2026-11-03 | Task 1.3 prereg Part A (MLP) | f945a5cd587d2a3cd21423ae0fbc1ba1e21dfece | data: MyDrive/dpc_out_mlp_stageA.zip (read with the Drive connector, created
+18:00) -> data/dpc_out_mlp; MLP oracle true cost 2.4969-2.5007 (30 runs); analysis/make_prereg_arch.py --mlp | - | MLP oracle
+Lambda* max 7.36 (LN MSE 3000), 0 of 180 predicted trapped; median K_land 10.1-10.8 | linear part deferred (zip not yet
+available); 1 run with sensitivity underflow in the exactness check (contraction), noted in the file
+2026-11-03 | items 2-4 (exploratory) | see commits | mom_diagnose.py, mom_moment_test.py; lr 1e-4 1000 epochs; t2_exact.py | dpc_out |
+mom: 11-498 of 1000 starts > 1e3 at the good controller, median of means exploded at epoch 1 (2e31 on s2); Adam-moment reset
+does not stop the drift; lr 1e-4 x 1000 epochs keeps all 6 broken pairs (max +1.5 %); Lambda*_mem: no separation on LN MSE,
+post hoc 14/20, 0/160, the 3 missed traps not caught | all labelled exploratory in the results docs
