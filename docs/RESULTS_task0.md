@@ -42,4 +42,13 @@ Also reproduced on the way (Task 4): fixed-LQR path-colour bins 1.0 / 1.0 / 0 / 
 `story/swap_lqr_rates.csv` (all 20 numbers).
 
 ## QUICK run of the DPC notebook (CPU)
-(filled below when the run finished)
+Both notebooks build (`python src/build_dpc_notebook.py`, `python src/build_phase_notebook.py`). The DPC notebook ran end to
+end headless on CPU in QUICK mode (2 seeds, short surrogates, 120 controller epochs, repeats 0-1, robust block on):
+the handoff version (commit 38de1d6) in 678 s, the current version in 611 s (other jobs were running), no cell errors.
+
+Regression (default behaviour bit-identical, ground rule 4): every output of the two QUICK runs was compared.
+Identical: all 16 controller files, all 16 trajectory files, `dpc_results.csv`, `dpc_diag.csv`, `dpc_curves.csv`,
+`surrogates.csv`, `tables/*.csv`, all surrogate weights and Level 1 metrics. The only differences are the intended new keys
+(`plant` in the surrogate files, `data_fp` in the label files, Task 2a cache guards) and the wall-clock fields
+(`train_s`, `train_s_per_seed`). Also identical: the LQR study (11 880 rows, above), `tools/regress_dpc.py` (GRU and MLP,
+mean / clip / unit aggregation, old vs new dpc_core) and `tools/regress_plant.py` (lqr_saturated, lqr_screen, slope maps).
