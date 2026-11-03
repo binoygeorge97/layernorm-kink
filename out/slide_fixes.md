@@ -78,6 +78,18 @@ controllers on the true plant (slide 16, recomputed 3 Nov), out/theory/t2_runs_L
    NEW: `Paired statistics (per seed, median over 3 repeats; Holm-adjusted over six paired claims): two-stage beats LN MSE on 10 of 10 seeds (Wilcoxon p = 0.002, Holm 0.012); two-stage ties static norm (6 of 10, p = 0.43); two-stage beats no norm on 9 of 10 seeds (p = 0.049), which is not significant after the Holm adjustment (0.098). If asked about longer MSE training: MSE 12000 beats MSE 3000 on 8 of 10 seeds (p = 0.014, Holm 0.041).`
 
 ---------------------------------------------------------------------------------------------------------------------------
+## Slide 18 (dpctrap) - PROPOSAL, added 2026-11-03 from an exploratory diagnostic (docs/RESULTS_opt.md); your decision
+
+12. Title
+   OLD: `No barrier: a chaotic gradient, carried by one start`
+   NEW: `No barrier: a chaotic gradient, dominated by a few exploding starts`
+13. Middle box
+   OLD: `<span style="color:#8B1A1A">One start</span> carries 61–100 % of ‖∇‖² on broken pairs (healthy: 0.2–1.7 %)`
+   NEW: `<span style="color:#8B1A1A">One start</span> carries 61–100 % of ‖∇‖², but 11 to 498 of the 1000 starts explode (healthy: none)`
+14. Speaker notes, after "(3) one start holds 61 to 100 % of the squared gradient norm (s8 0.999, s9 1.000);" add:
+   ` the explosion itself is not confined to that start: at the good controller 11 (s1), 498 (s2), 136 (s8) and 61 (s9) of the 1000 starts have per-start gradient norms above 1e3, spread over more than half of any 10 groups, which is why a median of group means fails while per-start clipping works (exploratory diagnostic, 3 Nov);`
+
+---------------------------------------------------------------------------------------------------------------------------
 ## Same corrections elsewhere (for the user; not editable from here)
 - Presenter's briefing and handover doc (claude.ai artifacts): any "2-4 half-widths", "K scales like 1/B_hat", "parks at
   x = 0.6", "bang-bang limit cycle" for seed 2, "J_x + J_u K", and exact gradient magnitudes. I have not read those two

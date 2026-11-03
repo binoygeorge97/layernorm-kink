@@ -44,3 +44,35 @@ True-plant cost at epoch 100 on the broken pairs (start 2.56-2.64):
 ## Reading so far
 Bounding each trajectory's vote (clip 3, unit) is what keeps the good controller; generic tricks (global clipping, median of
 means, minibatches) do not. Whether per-start clipping also FINDS the good controller from scratch is the Colab Run 4 question.
+
+## EXPLORATORY / POST HOC (not pre-registered): why median of means failed (P3b), 2026-11-03
+Script `analysis/mom_diagnose.py` (the mom warm start re-run with per-epoch logging; end costs 3.60, 3.51, 3.08, 2.71, 4.05,
+2.64 for LN MSE s1, s2, s8, s9 and slope-from-0 s2, s9: the same 5-of-6 pattern as the harness), `out/opt/mom_diagnose.csv`;
+follow-up `analysis/mom_moment_test.py`, `out/opt/mom_moment_test.csv`.
+
+1. At the good controller (statistics of the first epoch, before any update) the explosion is widespread, not one start:
+   starts with per-start gradient norm > 1e3: LN MSE s1 11, s2 498, s8 136, s9 61; slope-from-0 s2 62, s9 0 (its quiet end
+   point). Groups above 10 x the median group norm: 1-4 of 10. Because the exploding starts sit in more than half of the 10
+   groups, the median group mean is itself exploded: norm of the median-of-means gradient at epoch 1 = 7 (s1; but 3e42 at
+   epoch 3), 2e31 (s2), 1e10 (s8), 2e6 (s9), 4e14 (slope s2). cos(mom, per-start clip 3) at epoch 1: -0.06, -0.03, +0.35,
+   -0.55, -0.04. So: "many groups explode at once" holds at the start.
+2. The coordinate-wise median is NOT biased when only one group explodes: over the 62 epochs with exactly one group above
+   10 x the median, cos(mom, clip 3) has median 0.985 (0.948 for the mean of the clean groups); over the 434 epochs with none,
+   1.000. The direction breaks only when >= 2 groups explode (104 epochs, median 0.32).
+3. After the first epoch (all pairs except LN MSE s9, which keeps exploding intermittently) no start explodes, all 1000 starts
+   have norms 3-40, and mom, the plain mean and the clip-3 direction coincide (cos 1.00), yet the true cost keeps rising
+   smoothly. Follow-up (LN MSE s2, s8, 20 epochs): re-initialising AdamW after epoch 1 does not stop the rise (s2 2.64 -> 3.34,
+   s8 2.61 -> 3.86, vs 3.34 and 2.99 without reset), so poisoned Adam moments are NOT the explanation; clipping only the
+   epoch-1 gradient to norm 3 helps on s2 (2.77) but not s8 (3.98). Over epochs 2-20 the AdamW update has cosine -0.1 to
+   -0.2 with the negative gradient in every variant: the steps do not descend although the aggregated gradients are tame and
+   consistent. Not established here: why (step size vs local curvature is a candidate; see the lr 1e-4 1000-epoch run).
+
+Answer to the question: the first one. At the good controller tens to hundreds of starts explode at once (LN MSE seed 2:
+half of them), more than the median of 10 group means can reject; the median is not biased when only one group explodes.
+What the warm start does after the first step is a separate, unexplained phenomenon (tame, agreeing gradients, rising cost).
+
+Meaning for slide 18 ("a chaotic gradient, carried by one start"): the statement "one start holds 61-100 % of ||grad||^2"
+remains true, but "carried by one start" overstates it. The gradient is dominated by the single largest start in the squared
+norm, while the explosion itself involves 11 to 498 of the 1000 starts on the trapped LN MSE pairs. That is why per-start
+clipping (bounds every start) works and a median over 10 groups (needs a majority of clean groups) does not. Proposed slide
+text: out/slide_fixes.md, entry 12 (a proposal; nothing on the slide was changed).

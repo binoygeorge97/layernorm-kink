@@ -83,6 +83,7 @@ def run(setting, pairs, epochs, tag=""):
                 C, O, tl = step(C, O, P, S0, x0)
             record(e + LOG, C, np.asarray(tl)[0])
         r0, r1 = rows[-(epochs // LOG) - 1], rows[-1]
+        pd.DataFrame(rows).to_csv(paths.out("opt", f"warmstart_{setting}{tag}.csv"), index=False)   # saved after every pair
         print(f"{setting:8s} {sur:22s} seed {s}: true cost {r0['loss_true']:.3f} -> {r1['loss_true']:.3f} "
               f"(max {max(r['loss_true'] for r in rows if r['sur'] == sur and r['seed'] == s):.3f}) | "
               f"surrogate loss {r0['loss_sur']:.3f} -> {r1['loss_sur']:.3f} | {time.time() - t0:.0f}s", flush=True)
