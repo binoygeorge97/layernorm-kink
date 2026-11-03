@@ -93,7 +93,8 @@ True-plant cost, start -> epoch 1000 (largest value at any logged epoch):
 | slope-from-0 s9 | 2.639 -> 2.655 (2.655) | 2.64 -> 4.59 |
 | LN MSE s3 (healthy) | 2.419 -> 2.429 (2.448) | stays |
 | LN MSE s7 (healthy) | 2.597 -> 2.602 (2.603) | stays |
-| two-stage s2, s9 (healthy) | running at the time of writing | stays |
+| two-stage s2 (healthy) | 2.638 -> 2.638 (2.639) | stays |
+| two-stage s9 (healthy) | 2.639 -> 2.681 (2.681) | stays |
 (LN MSE s1, s3, s7 were also completed by the first attempt, stopped for time before it saved; its printed values are identical.)
 
 Answer: "stays", not "slower". With ten times smaller steps and the same total step budget, the good controller is kept on all
