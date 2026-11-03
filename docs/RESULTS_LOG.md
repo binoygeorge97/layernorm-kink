@@ -60,3 +60,8 @@ available); 1 run with sensitivity underflow in the exactness check (contraction
 mom: 11-498 of 1000 starts > 1e3 at the good controller, median of means exploded at epoch 1 (2e31 on s2); Adam-moment reset
 does not stop the drift; lr 1e-4 x 1000 epochs keeps all 6 broken pairs (max +1.5 %); Lambda*_mem: no separation on LN MSE,
 post hoc 14/20, 0/160, the 3 missed traps not caught | all labelled exploratory in the results docs
+2026-11-03 | Task 1.3 Part B (linear) + Task 2a.3 | 322e353, 77d8455ebd10da88547b436f3ea277a6bad376d8 | linear oracle (Drive zip) K 16.7-17.0, cost 2.5235; Lambda* ->
+12/180 predicted trapped (LN MSE s1, 2, 8, 9 x 3 reps), P2/A2 unchanged; B01 Stage A read file by file from MyDrive/dpc_out_B01
+(zip too large for the connector); make_prereg_B01.py: Q1 held (LN MSE median peak 18.7 -> 2.6 x B), Q2 held (0.26 %), Q3 held
+(48/48); fixed LQR LN MSE 25.1 % failed / 5.6 % catastrophic; Part 2: 1 of 180 predicted trapped (LN MSE s2 rep 2, 14.7) | - |
+exactness check of t2_arch invalid under chaos (documented in PREREG_arch)

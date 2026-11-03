@@ -105,3 +105,5 @@ Runs predicted trapped:
 ## Outcomes Part 2 (fill AFTER Stage B; do not edit anything above this line)
 | id | outcome (held / failed / partly) | numbers |
 |---|---|---|
+
+Part 2 registered at commit 77d8455ebd10da88547b436f3ea277a6bad376d8 (2026-11-03), before any DPC controller was trained through a B = 0.1 surrogate.
