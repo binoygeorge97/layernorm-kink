@@ -77,5 +77,9 @@ norms of 1e10+ differ between machines, CLAUDE.md pitfall 9); healthy pairs shou
 ## Outcomes (fill AFTER results; do not edit anything above this line)
 | id | outcome (held / failed / partly) | numbers |
 |---|---|---|
+| P2b | held | global clip 3 pushed off 4 of 6 broken pairs (LN MSE 1, 2, 8, 9); most recover by epoch 100 (2.63-3.15) |
+| P3b | failed | median of means stays on 1 of 6 (pushed off 5; end costs 3.0-4.1) |
+| P6 | held | 0 of 28 healthy-pair runs pushed off |
+| P1, P2a, P3a, P4, P5 | pending | need Colab Run 4 (from scratch) |
 
 Registered at commit c41967c7efc27fa9778f575334c01b0d323502e9 (2026-11-03), before any optimiser-baseline result existed.

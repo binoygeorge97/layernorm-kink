@@ -49,3 +49,6 @@ Also seen (after PREREG_B01 Part 1 was committed): QUICK-mode B = 0.1 surrogates
 300-step surrogates) | QUICK only | pipeline works (LQR study 13 s, Lambda*, Part 2 text); the QUICK numbers (e.g. static norm
 fixed-LQR 35 % failed) reflect undertrained surrogates and are not results; seen after Part 1 was committed (8ecc750), which is
 unchanged | t2_test.py now loads the DPC controllers only for --line (no output change)
+2026-11-03 | Task 3.2 warm start (complete) | see commit | warmstart_harness.py, 7 settings x 10 pairs, 100 epochs (harness 1 hit
+the 2 h limit, global3 rerun alone) | dpc_out | broken pairs pushed off: plain 5, clip3 0, unit 0, global3 4, mom 5, batch100
+4, lr1e-4 0 (of 6); healthy 0 of 28 | P2b held, P3b FAILED, P6 held (written into PREREG_opt outcomes; nothing above edited)
