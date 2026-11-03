@@ -42,7 +42,7 @@ BROKEN = {("MSE (3000)", 1), ("MSE (3000)", 2), ("MSE (3000)", 8), ("MSE (3000)"
           ("J_x + J_u (3000)", 9)}
 
 
-def run(setting, pairs, epochs):
+def run(setting, pairs, epochs, tag=""):
     o = SETTINGS[setting]
     plant = L.Plant(A=1.03, B=0.01, eps_nl=0.0)
     seeds = list(range(10))
@@ -87,7 +87,7 @@ def run(setting, pairs, epochs):
               f"(max {max(r['loss_true'] for r in rows if r['sur'] == sur and r['seed'] == s):.3f}) | "
               f"surrogate loss {r0['loss_sur']:.3f} -> {r1['loss_sur']:.3f} | {time.time() - t0:.0f}s", flush=True)
     D = pd.DataFrame(rows)
-    D.to_csv(paths.out("opt", f"warmstart_{setting}.csv"), index=False)
+    D.to_csv(paths.out("opt", f"warmstart_{setting}{tag}.csv"), index=False)
     return D
 
 
@@ -96,7 +96,8 @@ if __name__ == "__main__":
     ap.add_argument("--settings", default=",".join(SETTINGS))
     ap.add_argument("--epochs", type=int, default=100)
     ap.add_argument("--pairs", default=None, help='e.g. "MSE (3000):2,J_x + J_u (3000):9"')
+    ap.add_argument("--tag", default="", help="suffix of the output file (exploratory re-runs, e.g. _1000ep_part1)")
     a = ap.parse_args()
     pairs = PAIRS if a.pairs is None else [(p.rsplit(":", 1)[0], int(p.rsplit(":", 1)[1])) for p in a.pairs.split(",")]
     for st in a.settings.split(","):
-        run(st, pairs, a.epochs)
+        run(st, pairs, a.epochs, a.tag)

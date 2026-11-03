@@ -1,0 +1,61 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\title{An exact-memory landing statistic for the GRU controller\\[2pt]\large exploratory, not pre-registered (3 November 2026)}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+
+\section*{Why}
+The pre-registered landing amplification $\Lambda^\star$ uses the scalar multiplier
+\[m_k=\hat J_x(x_k,u_k)-\hat J_u(x_k,u_k)K_k\]
+with the direct gain $K_k=-\partial u_k/\partial x_k$ at fixed hidden state $h_k$. For the GRU this ignores every path through
+the memory, and the scalar price recursion $p_k=c_k+m_kp_{k+1}$ can be far from the exact price (slide 17 background work:
+LN MSE 3000 seed 2, repeat 0, start $+0.02$: $6\times10^{48}$ scalar against $3\times10^{33}$ exact at $k=0$; seed 8, start
+$2.37$: $6\times10^{5}$ against $3\times10^{10}$). The statistic below keeps the landing-window idea of $\Lambda^\star$ but uses
+the exact price. The scalar $\Lambda^\star$ remains the primary, pre-registered statistic.
+
+\section*{Definition}
+For one training start $x_0$, the reference (oracle) GRU controller and one surrogate $\hat F$, run the closed loop with an
+additive perturbation $\varepsilon_k$ of the state at every step,
+\[
+h_{k+1},u_k=\pi(h_k,\,x_k+\varepsilon_k),\qquad x_{k+1}=\hat F(x_k+\varepsilon_k,\,u_k),\qquad k=0,\dots,N-1,
+\]
+with the per-start DPC loss
+$\ell=\frac1N\big[\sum_{k<N}\big(Q(x_k+\varepsilon_k)^2+Ru_k^2\big)+Q_f(x_N+\varepsilon_N)^2\big]$, $N=200$, $Q=5$, $R=0.1$,
+$Q_f=50$. The exact price of the state at step $k$ is
+\[
+p_k=\frac{\partial\ell}{\partial\varepsilon_k}\Big|_{\varepsilon=0},\qquad k=0,\dots,N,
+\]
+all $N+1$ of them from one reverse-mode pass. It is the state component of the costate of the augmented system
+$z_k=(h_k,x_k)\in\mathbb R^{65}$, so every path through the memory is included. The direct source of step $k$ is the one-step
+part of $p_k$,
+\[
+c_k=\tfrac2N\big(Qx_k+Ru_k\,\partial u_k/\partial x_k|_{h_k}\big)\ (k<N),\qquad c_N=\tfrac2N Q_fx_N .
+\]
+With the landing window $W=\{k_\mathrm{land},\dots,N\}$, $k_\mathrm{land}$ the first $k$ with $|x_k|\le0.2$ (as for
+$\Lambda^\star$), the exact landing amplification of the start and of the run are
+\[
+\Lambda_{\mathrm{mem}}(x_0)=\log\frac{\max_{k\in W}|p_k|}{\max_{k\in W}|c_k|},\qquad
+\Lambda^\star_{\mathrm{mem}}=\max_{x_0}\Lambda_{\mathrm{mem}}(x_0)
+\]
+over the 1000 training starts of the repeat ($\Lambda_{\mathrm{mem}}=0$ for a start that never lands). The scalar counterpart
+$\Lambda_{\mathrm{scal}}$ is the same expression with $p_k$ replaced by the scalar recursion $p_k=c_k+m_kp_{k+1}$,
+$p_N=c_N$; it isolates the effect of the memory from the effect of the normalisation.
+
+\section*{Reading}
+If the closed loop contracts on $W$ with factor $\rho<1$ per step (in the scalar case $|m_k|\le\rho$), then
+$|p_k|\le\sum_{j\ge k}\rho^{\,j-k}|c_j|\le\max|c|/(1-\rho)$, so $\Lambda_{\mathrm{mem}}\le\log\frac1{1-\rho}$; for the true plant
+under the LQR gain, $\rho=0.927$ gives about $2.6$. A stretch of $T$ expanding steps with mean log growth $\tau$ multiplies the
+price by about $e^{\tau T}$ and adds about $\tau T$, which is what $\Lambda^\star$ measures with the scalar multiplier.
+Normalising by the largest source rather than by $|p_{k_2}|$ avoids divisions by prices that cross zero.
+
+\section*{Threshold and test}
+The threshold uses the rule of the pre-registered one, applied to LN MSE 3000 only (30 runs): the geometric midpoint of the
+largest $\Lambda^\star_{\mathrm{mem}}$ of the non-trapped runs and the smallest of the trapped runs, if they separate. It is then
+applied unchanged to the 150 runs of the other five families. Reported: the confusion matrix over all 180 runs, and whether the
+three traps missed by $\Lambda^\star$ (slope from step 0: seed 4 repeat 1, seed 9 repeat 1, seed 3 repeat 2) are caught.
+Code: \texttt{theory/t2\_exact.py}; output \texttt{out/theory/t2\_exact.csv}.
+\end{document}

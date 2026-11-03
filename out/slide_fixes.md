@@ -71,6 +71,13 @@ controllers on the true plant (slide 16, recomputed 3 Nov), out/theory/t2_runs_L
    NEW: `Low authority (B = 0.01, K about 10) amplifies J_u errors inside m = J_x_hat - J_u_hat K.`
 
 ---------------------------------------------------------------------------------------------------------------------------
+## Slide 21 (scorecard) - added 2026-11-03 (Task 4 corrections)
+
+11. Speaker notes, third paragraph
+   OLD: `Paired statistics: two-stage beats LN MSE on 10 of 10 seeds (Wilcoxon p = 0.002); two-stage ties static norm (6 of 10, p = 0.43); beats no norm 9 of 10 (p = 0.049).`
+   NEW: `Paired statistics (per seed, median over 3 repeats; Holm-adjusted over six paired claims): two-stage beats LN MSE on 10 of 10 seeds (Wilcoxon p = 0.002, Holm 0.012); two-stage ties static norm (6 of 10, p = 0.43); two-stage beats no norm on 9 of 10 seeds (p = 0.049), which is not significant after the Holm adjustment (0.098). If asked about longer MSE training: MSE 12000 beats MSE 3000 on 8 of 10 seeds (p = 0.014, Holm 0.041).`
+
+---------------------------------------------------------------------------------------------------------------------------
 ## Same corrections elsewhere (for the user; not editable from here)
 - Presenter's briefing and handover doc (claude.ai artifacts): any "2-4 half-widths", "K scales like 1/B_hat", "parks at
   x = 0.6", "bang-bang limit cycle" for seed 2, "J_x + J_u K", and exact gradient magnitudes. I have not read those two

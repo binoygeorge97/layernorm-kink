@@ -1,0 +1,76 @@
+\documentclass[10.5pt]{article}
+\usepackage[a4paper,margin=2.1cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx}
+\title{Task 2b: which two-state plant? A proposal for decision}
+\author{}
+\date{3 November 2026 (numbers from \texttt{analysis/plant2\_check.py})}
+\begin{document}
+\maketitle
+\vspace{-1.5em}
+\section*{Criteria (CLAUDE.md) and how they were checked}
+Open-loop unstable; low authority like the scalar case ($B=0.01$); controllable; equilibria with $u_{ss}\ne0$ that move with a
+position setpoint $x_1=r$; the recoverable set inside the data box. All candidates use $B=(0,\,0.01)^\top$, the LQR weights
+$Q=\mathrm{diag}(5,0.5)$, $R=0.1$ (gain from \texttt{scipy.linalg.solve\_discrete\_are}), and the actuator $|u|\le10$.
+The recoverable set is the set of initial states from which the saturated LQR $u=\mathrm{clip}(-Kx,\pm10)$ reaches the origin
+(161$\times$161 grid, 4000 steps). The safe band is the range of $g$ for which the closed-loop multiplier
+$M=A-g\,BK$ (a model whose input slope is $\hat J_u=gB$ and whose state slope is right) has spectral radius below 1; it is
+the two-state version of $(\hat J_x-1)/K<\hat J_u<(\hat J_x+1)/K$.
+
+\begin{table}[h]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\toprule
+ & scalar (current) & P1 & P2 & P3\\
+\midrule
+$A$ & $1.03$ & $\begin{bmatrix}1.02&0.05\\0&1.01\end{bmatrix}$ & $\begin{bmatrix}0.98&0.05\\0&1.03\end{bmatrix}$ & $\begin{bmatrix}1&0.1\\-0.05&1.01\end{bmatrix}$\\[8pt]
+open-loop eigenvalues & 1.03 & 1.02, 1.01 & 0.98, 1.03 & $1.005\pm0.071i$\\
+controllable & yes & yes & yes & yes\\
+LQR gain $K$ & 10.29 & $(11.09,\ 11.90)$ & $(3.91,\ 10.38)$ & $(3.22,\ 10.37)$\\
+closed-loop spectral radius & 0.927 & 0.956 & 0.954 & 0.956\\
+equilibrium $x_2(r)$, $u_{ss}(r)$ & --, $-3r$ & $-0.4r$, $0.4r$ & $0.4r$, $-1.2r$ & $0$, $5r$\\
+recoverable set (half-extent) & $|x|\le3.33$ & $|x_1|\le6.1$, $|x_2|\le4.7$ & $x_1$ unbounded, $|x_2|\le3.3$ & $|x_1|\le10.5$, $|x_2|\le7.6$\\
+usable setpoints $|r|$ & $\le3$ & $\le6.1$ & $\le7.3$ & $\le1.8$\\
+data box ($1.2\times$) & $|x|\le4$ & $|x_1|\le7.3$, $|x_2|\le5.6$ & $|x_1|\le8.8$, $|x_2|\le3.9$ & $|x_1|\le12.7$, $|x_2|\le9.2$\\
+safe band $g$ & 0.29 -- 19.7 & 0.27 -- 17.3 & 0.15 -- 19.8 & 0.15 -- 19.7\\
+spectral radius at $g=-1$ & 1.13 & 1.17 & 1.15 & 1.10\\
+\bottomrule
+\end{tabular}
+\end{table}
+\noindent For P2 the stable first state does not bound the recoverable set, so its data box is set by the setpoint range
+(the equilibria of $|r|\le7.3$ need $|x_2|\le2.9$, $|u|\le8.8$).
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{fig_recoverable.png}
+\caption{Recoverable sets of the saturated LQR (shaded) and the equilibria of the position setpoints $x_1=r$ (dashed) for the
+three candidates.}
+\end{figure}
+
+\section*{Assessment}
+P1 (the CLAUDE.md example) meets every criterion. Both modes are unstable and coupled, the recoverable set is a genuinely
+two-dimensional bounded region, the equilibria move along a line through the box ($x_2=-0.4r$, $u_{ss}=0.4r$), and the safe
+band of the multiplier is close to the scalar one (0.27--17.3 $B$ against 0.29--19.7 $B$), so the same low-authority
+sensitivity is present. Its only drawback is the small input per setpoint ($u_{ss}=0.4r$): the setpoint line crosses the
+kink region at small $|u|$, which keeps the kink in play but means setpoints are mostly separated along $x$.
+
+P2 nests the current study: its actuated, unstable state $x_2$ is exactly the scalar plant ($A=1.03$, $B=0.01$), and $x_1$ is a
+stable lag that is the controlled output. Scalar results should carry over almost one to one, which makes it a clean
+attribution test (does adding a state and a third surrogate input change the trap?) but a weak generality test: a reviewer
+can say it is the same plant. It also adds a new error channel (the model may give $x_1^+$ a slope in $u$ that the true plant
+does not have), which is interesting but not what Task 2b asks.
+
+P3 is rejected: the setpoint equilibria all have $x_2=0$ and need $u_{ss}=5r$, so only $|r|\le1.8$ can be held, and the
+oscillatory open loop complicates the landing window of $\Lambda^\star$.
+
+\section*{Recommendation}
+Use P1 as the second plant, as proposed in CLAUDE.md, with data box $|x_1|\le7.3$, $|x_2|\le5.6$, $|u|\le10$, setpoints
+$r\in\{-4,-2,-1,-0.5,-0.25,0,0.25,0.5,1,2,4\}$ on $x_1$, starts on a $5\times5$ grid inside the recoverable set,
+$Q=\mathrm{diag}(5,0.5)$, $R=0.1$, $Q_f=10Q$. Keep P2 as an optional control run if the P1 result differs from the scalar one
+(it would say whether the difference comes from the plant's dynamics or from the two-state surrogate itself).
+
+\section*{Cost}
+Local work (me): the $n_x$-general versions listed in CLAUDE.md (plant, data, 3-input/2-output surrogate, 3-input label
+estimator, ellipsoid kink metrics, vector DPC, DARE-based LQR study, matrix multiplier statistic), a CPU smoke test of every
+milestone, and the short LaTeX note defining the matrix $\Lambda$ before it is used: about 3--4 working sessions.
+Colab A100 (float64): Level 1, six families $\times$ 10 seeds, about 1 h (the label estimator in 3 inputs is the slow part);
+DPC GRU and MLP through the 60 surrogates, 3 repeats, about 3--4 h; LQR study and $\Lambda^\star$ local (minutes to an hour).
+Total about 5 h of A100 in two sessions (surrogates + oracle first, then the pre-registration, then DPC), as for Task 2a.
+\end{document}

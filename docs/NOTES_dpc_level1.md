@@ -69,7 +69,11 @@ Paired (A vs B, typical-start gap; seeds A better; Wilcoxon p)
 - LN MSE vs static: static better 10/10 (p = 0.002); vs no norm: no norm better 8/10 (p = 0.01). Also on large starts (0/10).
 - two-stage vs LN MSE: better 10/10 (p = 0.002), every metric. Slope from step 0 vs LN MSE: 10/10 on typical (p = 0.002).
 - two-stage vs static: tie (6/10, p = 0.38; median diff -0.05 pp); vs no norm: better 9/10 (p = 0.049).
+  [CORRECTED 2026-11-03, Task 4: not significant after Holm adjustment over the six paired claims (Holm p = 0.098 with all
+  repeats); say "9 of 10 seeds, p = 0.049, not significant after Holm". docs/RESULTS_stats.md]
 - MSE 12000 vs MSE 3000: better 9/10 (p = 0.006); two-stage vs MSE 12000: 7/10, p = 0.23 (n.s.).
+  [CORRECTED 2026-11-03, Task 4: 9/10, p = 0.006 is repeat 0 only. With all 3 repeats (per-seed median): 8 of 10 seeds,
+  Wilcoxon p = 0.014, Holm p = 0.041. docs/RESULTS_stats.md]
 
 Mechanism (failing LN MSE seeds)
 - Failure mode (a), not (b): the controller cannot control even its OWN model. Cost on own model ~= on true plant
@@ -90,7 +94,7 @@ Predictions
 - P1 HOLDS, more strongly than stated: LN MSE worse than kink-free on typical (10/10 vs static) and large starts too. The
   "about the same from large starts" half was WRONG: the failure is global on narrow-kink seeds because the controller
   itself is broken (mode a), not only near-zero transients.
-- P2 HOLDS: two-stage within the kink-free range (ties static, beats no norm 9/10). Seed 9 slightly off (1.8 %, offset 0.054).
+- P2 HOLDS: two-stage within the kink-free range (ties static, beats no norm 9/10; CORRECTED 2026-11-03: not significant after Holm, p = 0.098). Seed 9 slightly off (1.8 %, offset 0.054).
 - P4 WRONG as stated: MSE 12000 is fine on all 10 seeds (max 0.96 %). It is MSE 3000 that fails on seeds 1, 2, 8, 9.
   The narrow-kink seeds were right; the model was wrong (12 000 steps shrink those kinks enough for DPC).
 - Small-start metric is weak: every model, kink-free included, has large relative gaps there (static 28 %, no norm 100 %
@@ -125,7 +129,8 @@ Each controller trained 3 times per seed (repeat r: controller init key 20000 + 
 - Runs failed (typical-start gap > 10 %), of 30: LN MSE 13 (seeds 1, 2, 8, 9 in all three repeats, seed 5 in one);
   slope from step 0 8 (seeds 2 and 9 in all three, 3 and 4 once); two-stage 0; MSE 12000 0; no norm 0; static 0.
 - Paired, per-seed median over repeats (n = 10): two-stage beats LN MSE 10/10 (p = 0.002); LN MSE loses to static 10/10
-  (p = 0.002); two-stage vs static tie (6/10, p = 0.43); two-stage beats no norm 9/10 (p = 0.049).
+  (p = 0.002); two-stage vs static tie (6/10, p = 0.43); two-stage beats no norm 9/10 (p = 0.049; CORRECTED 2026-11-03: Holm
+  p = 0.098 over the six paired claims, not significant).
 - Diagnostic over all repeats: 20 of the 21 failed runs are the optimisation trap (DPC's own controller rated > 1.05x the
   reference controller on the surrogate; up to 750x). The one exception is LN MSE seed 5 rep 0 (0.99: mild model mismatch).
   The reference controller run through each surrogate costs 0.93-1.06x its true-plant cost on the LN MSE surrogates.
