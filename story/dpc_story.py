@@ -24,8 +24,8 @@ def bg(ax, m, s, win=(-1.5, 1.5, -10, 10), n=161):
 # ================= S2 / A2: how the DPC controllers fail (true plant), ideal vs kink =================
 PANELS = [("oracle (DPC through the true plant), seed 2", "true plant (oracle)", None, 2),
           ("IDEAL: DPC through static-norm surrogate, seed 2", "static norm, MSE", SN, 2),
-          ("KINK: LN MSE seed 1 - parks at a false rest x = 0.6", "LN, MSE (3000)", LN, 1),
-          ("KINK: LN MSE seed 2 - bang-bang limit cycle", "LN, MSE (3000)", LN, 2),
+          ("KINK: LN MSE seed 1 - parks at x = -0.58 or +1.71", "LN, MSE (3000)", LN, 1),
+          ("KINK: LN MSE seed 2 - oscillates, then parks at x = 1.1 (one start keeps cycling)", "LN, MSE (3000)", LN, 2),
           ("KINK: LN MSE seed 9 - pushed the wrong way, diverges", "LN, MSE (3000)", LN, 9),
           ("FIX: two-stage surrogate, seed 2", "LN, two-stage", PC.Model.surrogate(OUT, "J_x + J_u (two-stage)", seeds, "two-stage"), 2)]
 cmap = plt.get_cmap("coolwarm")
@@ -43,6 +43,7 @@ fig.colorbar(im, ax=ax[0, :], fraction=0.01, pad=0.005).set_label("surrogate / t
 fig.suptitle("How DPC controllers fail: the saved repeat-0 controllers run on the TRUE plant from 10 starts (dots), over their own surrogate's input gain. "
              "Top: phase plane (x_k, u_k); bottom: x_k. The oracle ends at (0, 0); the kinked ones park off-target, limit-cycle or diverge, always OUTSIDE the kink.", fontsize=10)
 fig.savefig(f"{ST}/S2_dpc_how_it_fails.png", dpi=120, bbox_inches="tight")
+fig.savefig(paths.out("figs", "S2_dpc_how_it_fails.png"), dpi=120, bbox_inches="tight")   # Task 5.2 (slide 16)
 # animation A2: same panels, marching dots
 fig, ax = plt.subplots(1, 6, figsize=(24, 4.6)); arts = []
 for c, (title, name, m, s) in enumerate(PANELS):
