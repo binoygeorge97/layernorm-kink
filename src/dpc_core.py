@@ -56,6 +56,26 @@ ROBUST_MODELS = [dict(name="LN, MSE (3000), clipped grads", short="LN MSE\nclipp
                  dict(name="LN, MSE (3000), unit grads", short="LN MSE\nunit vote", surrogate="MSE (3000)", group="MSE robust",
                       aggregate="unit")]
 
+# Optimiser baselines (Task 3, 2026-11-03): does a standard optimiser trick already fix the trap? Same LN MSE surrogate,
+# same controller inits and starts. Not in MODELS by default: the notebook trains them when RUN_OPT = True.
+#   aggregate 'global' : clip the AVERAGED gradient to norm <= clip (optax.clip_by_global_norm)
+#   aggregate 'mom'    : median of means: starts split into `groups` contiguous groups, mean per group, coordinate-wise median
+#   batch b            : b starts drawn without replacement each epoch (key 40000 + s + 1000 rep, fold_in epoch)
+#   lr                 : AdamW learning rate (default CTRL_LR)
+#   max_horizon        : curriculum stops at this horizon (stages with N > max_horizon dropped); the test stays N = 200
+OPT_MODELS = [dict(name="LN, MSE (3000), global clip 3", short="LN MSE\nglobal clip", surrogate="MSE (3000)", group="MSE opt",
+                   aggregate="global", clip=3.0),
+              dict(name="LN, MSE (3000), mom", short="LN MSE\nmedian of means", surrogate="MSE (3000)", group="MSE opt",
+                   aggregate="mom", groups=10),
+              dict(name="LN, MSE (3000), batch 100", short="LN MSE\nbatch 100", surrogate="MSE (3000)", group="MSE opt",
+                   batch=100),
+              dict(name="LN, MSE (3000), lr 1e-4", short="LN MSE\nlr 1e-4", surrogate="MSE (3000)", group="MSE opt", lr=1e-4),
+              dict(name="LN, MSE (3000), N <= 50", short="LN MSE\nN <= 50", surrogate="MSE (3000)", group="MSE opt",
+                   max_horizon=50),
+              dict(name="LN, MSE (3000), N <= 100", short="LN MSE\nN <= 100", surrogate="MSE (3000)", group="MSE opt",
+                   max_horizon=100)]
+BATCH_KEY = 40_000                                        # minibatch draws: PRNGKey(40000 + s + 1000 rep), fold_in(epoch)
+
 
 def surrogate_configs(T=3000, T_extra=1000, T_long=12000):
     """name -> Level 1 configuration, with the step counts scaled for QUICK runs."""
@@ -275,40 +295,77 @@ def dpc_loss(c, dyn, p, s0, x0, N, cfg=CONFIG):
 _DPC_STEPS = {}
 
 
-def robust_grad(c, dyn, p, s0, x0, N, aggregate="mean", clip=1.0):
+def robust_grad(c, dyn, p, s0, x0, N, aggregate="mean", clip=1.0, groups=10):
     """Loss and gradient over the batch of starts x0 [B, 1] with a choice of aggregation over starts.
     'mean'  : the ordinary full-batch gradient (gradient of the mean loss).
     'clip'  : per-start gradients, each clipped to norm <= clip, then averaged (a bounded vote per trajectory: one start
               whose rollout runs through a locally unstable region of the surrogate cannot dominate the batch).
     'unit'  : per-start gradients normalised to unit norm, then averaged (equal vote, no threshold).
+    'global': the ordinary mean gradient, rescaled to norm <= clip (optax.clip_by_global_norm): bounds the step size,
+              not the vote of a single start (its direction is unchanged).
+    'mom'   : median of means: the B starts are split into `groups` contiguous groups (B divisible by groups), the gradient
+              is averaged within each group, and the coordinate-wise median over the group means is used.
     Per-start gradients cost one backward pass per start (vmap over starts), ~B x the memory of the mean gradient."""
     if aggregate == "mean":
         return jax.value_and_grad(dpc_loss)(c, dyn, p, s0, x0, N)
+    if aggregate == "global":
+        loss, g = jax.value_and_grad(dpc_loss)(c, dyn, p, s0, x0, N)
+        nrm = jnp.sqrt(sum(jnp.sum(l ** 2) for l in jax.tree_util.tree_leaves(g)))
+        sc = jnp.where(nrm < clip, 1.0, clip / nrm)
+        return loss, tmap(lambda l: l * sc, g)
     one = lambda c, x: dpc_loss(c, dyn, p, s0, x[None], N)
     losses, G = jax.vmap(jax.value_and_grad(one), in_axes=(None, 0))(c, x0)          # [B], tree of [B, ...]
+    if aggregate == "mom":
+        B = x0.shape[0]
+        G = tmap(lambda g: jnp.median(jnp.mean(g.reshape((groups, B // groups) + g.shape[1:]), 1), 0), G)
+        return jnp.mean(losses), G
     nrm = jnp.sqrt(sum(jnp.sum(g.reshape(g.shape[0], -1) ** 2, 1) for g in jax.tree_util.tree_leaves(G)))   # [B]
     scale = jnp.minimum(1.0, clip / (nrm + 1e-30)) if aggregate == "clip" else 1.0 / (nrm + 1e-30)
     G = tmap(lambda g: jnp.mean(g * scale.reshape((-1,) + (1,) * (g.ndim - 1)), 0), G)
     return jnp.mean(losses), G
 
 
-def get_dpc_trainer(key, dyn, N, n_epochs, opt, aggregate="mean", clip=1.0):
+def get_dpc_trainer(key, dyn, N, n_epochs, opt, aggregate="mean", clip=1.0, groups=10):
     """n_epochs full-batch AdamW steps at horizon N, vmapped over seeds. Returns (C, O, losses[S, n_epochs]).
-    aggregate: how per-start gradients are combined (see robust_grad)."""
-    k = (key, N, n_epochs, aggregate, clip)
+    aggregate: how per-start gradients are combined (see robust_grad); groups: only for 'mom'."""
+    k = (key, N, n_epochs, aggregate, clip) if aggregate != "mom" else (key, N, n_epochs, aggregate, clip, groups)
     if k in _DPC_STEPS:
         return _DPC_STEPS[k]
 
     def one(c, o, p, s0, x0):
         def st(carry, _):
             c, o = carry
-            loss, g = robust_grad(c, dyn, p, s0, x0, N, aggregate, clip)
+            loss, g = (robust_grad(c, dyn, p, s0, x0, N, aggregate, clip) if aggregate != "mom"
+                       else robust_grad(c, dyn, p, s0, x0, N, aggregate, clip, groups))
             upd, o = opt.update(g, o, c)
             return (optax.apply_updates(c, upd), o), loss
         (c, o), losses = jax.lax.scan(st, (c, o), None, length=n_epochs)
         return c, o, losses
 
     f = jax.jit(jax.vmap(one, in_axes=(0, 0, 0, 0, 0)))
+    _DPC_STEPS[k] = f
+    return f
+
+
+def get_dpc_trainer_batch(key, dyn, N, n_epochs, opt, batch, aggregate="mean", clip=1.0, groups=10):
+    """As get_dpc_trainer, but each epoch uses `batch` starts drawn without replacement from the run's x0: the draw of
+    epoch e is jax.random.choice(fold_in(bkey, e), B, (batch,), replace=False), bkey = PRNGKey(40000 + s + 1000 rep).
+    Returns f(C, O, P, S0, X0, BKEYS, epoch0) -> (C, O, losses)."""
+    k = ("batch", key, N, n_epochs, batch, aggregate, clip, groups)
+    if k in _DPC_STEPS:
+        return _DPC_STEPS[k]
+
+    def one(c, o, p, s0, x0, bkey, epoch0):
+        def st(carry, e):
+            c, o = carry
+            idx = jax.random.choice(jax.random.fold_in(bkey, e), x0.shape[0], (batch,), replace=False)
+            loss, g = robust_grad(c, dyn, p, s0, x0[idx], N, aggregate, clip, groups)
+            upd, o = opt.update(g, o, c)
+            return (optax.apply_updates(c, upd), o), loss
+        (c, o), losses = jax.lax.scan(st, (c, o), epoch0 + jnp.arange(n_epochs))
+        return c, o, losses
+
+    f = jax.jit(jax.vmap(one, in_axes=(0, 0, 0, 0, 0, 0, None)))
     _DPC_STEPS[k] = f
     return f
 
@@ -333,15 +390,28 @@ def train_controllers(model, P, S0, seeds, plant, curriculum=CURRICULUM, n_x0=N_
     X0 = jnp.stack([jax.random.uniform(jax.random.PRNGKey(run_keys(s, r)[1]), (n_x0, 1), dtype, -X0_RANGE, X0_RANGE)
                     for s, r in pairs])
     C = L.stack_trees([init_controller(run_keys(s, r)[0] - 20_000, dtype=dtype) for s, r in pairs])
-    opt = optax.adamw(CTRL_LR)
+    opt = optax.adamw(model.get("lr", CTRL_LR))
     O = jax.vmap(opt.init)(C)
+    if model.get("max_horizon"):
+        curriculum = [(N, e) for N, e in curriculum if N <= model["max_horizon"]]
+    if model.get("batch"):
+        BKEYS = jnp.stack([jax.random.PRNGKey(BATCH_KEY + int(s) + 1000 * int(r)) for s, r in pairs])
     curves, epoch, t0 = [], 0, time.time()
     for N, n_ep in curriculum:
         done = 0
         while done < n_ep:
             n = min(log_every, n_ep - done)
-            step = get_dpc_trainer((model["name"], str(dtype), ARCH), dyn, N, n, opt, model.get("aggregate", "mean"), model.get("clip", 3.0))
-            C, O, losses = step(C, O, P, S0, X0)
+            if model.get("batch"):
+                step = get_dpc_trainer_batch((model["name"], str(dtype), ARCH), dyn, N, n, opt, model["batch"],
+                                             model.get("aggregate", "mean"), model.get("clip", 3.0), model.get("groups", 10))
+                C, O, losses = step(C, O, P, S0, X0, BKEYS, epoch)
+            elif model.get("aggregate") == "mom":
+                step = get_dpc_trainer((model["name"], str(dtype), ARCH), dyn, N, n, opt, "mom", model.get("clip", 3.0),
+                                       model.get("groups", 10))
+                C, O, losses = step(C, O, P, S0, X0)
+            else:
+                step = get_dpc_trainer((model["name"], str(dtype), ARCH), dyn, N, n, opt, model.get("aggregate", "mean"), model.get("clip", 3.0))
+                C, O, losses = step(C, O, P, S0, X0)
             losses = np.asarray(losses)
             done += n
             epoch += n

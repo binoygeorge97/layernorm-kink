@@ -284,13 +284,15 @@ with a bounded vote before AdamW sees them: `clip` = each start's gradient clipp
 maximum), `unit` = each normalised to unit norm (equal vote, no threshold). If this rescues seeds 1, 2, 8, 9 the failure is
 the exploding per-trajectory gradient, and this is the "generic fix the optimiser" baseline a reviewer will ask for. It
 costs one backward pass per start (`jax.vmap` over the 1000 starts), roughly 3-5x the time of a plain model on the A100.
-Runs for whichever `ARCH` is set (the robust models are trained with the same controller class). Set `RUN_ROBUST = False` to skip."""
+Runs for whichever `ARCH` is set (the robust models are trained with the same controller class). Set `RUN_ROBUST = False` to skip.
+`ROBUST_REPS` (default `[0]`, as before) sets the repeats; Task 3 uses `[0, 1, 2]`."""
 
 ROBUST_CODE = """RUN_ROBUST = True
+ROBUST_REPS = [0]              # Task 3: [0, 1, 2]
 if RUN_ROBUST:
     t0 = time.time()
     D.run_dpc(D.ROBUST_MODELS, SEEDS, PLANT, SIGMA, KERNEL, OUT, SURR, label_dir=LABEL_DIR, curriculum=CURRICULUM, n_x0=N_X0,
-              dtype=jnp.float64 if DTYPE == "float64" else jnp.float32, reps=[0], sur_dir=SUR_DIR)
+              dtype=jnp.float64 if DTYPE == "float64" else jnp.float32, reps=ROBUST_REPS, sur_dir=SUR_DIR)
     print(f"robust models done in {(time.time() - t0) / 60:.1f} min")
     R2, _, _ = RP.load(OUT)
     R2 = RP.add_gaps(R2, RP.per_start(OUT, models=[m["name"] for m in D.MODELS + D.ROBUST_MODELS]))
@@ -302,6 +304,49 @@ if RUN_ROBUST:
 
 md(ROBUST_MD)
 code(ROBUST_CODE)
+
+OPT_MD = """## Optimiser baselines (Task 3, 2026-11-03): does a standard optimiser trick already fix the trap?
+Same LN MSE (3000) surrogates, same controller inits and training starts, one setting changed per model (`D.OPT_MODELS`):
+`global clip 3` (the AVERAGED gradient clipped to norm <= 3, as `optax.clip_by_global_norm`), `mom` (median of means over
+10 groups of 100 starts), `batch 100` (100 of the 1000 starts drawn per epoch, key 40000 + s + 1000 rep), `lr 1e-4`,
+`N <= 50` and `N <= 100` (curriculum stopped at that horizon; the test is still 200 steps on the true plant).
+Then the trap diagnostic (reference controller through the same surrogate) for every robust and optimiser model, and one
+table: failed (typical-start gap > 10 %) and trapped (failed AND own controller > 1.05 x the reference on the surrogate)
+out of len(SEEDS) x len(OPT_REPS) (the robust models are included when `RUN_ROBUST = True`). `RUN_OPT = False`
+(default) skips the block."""
+
+OPT_CODE = """RUN_OPT = False
+OPT_REPS = [0, 1, 2]
+if RUN_OPT:
+    t0 = time.time()
+    D.run_dpc(D.OPT_MODELS, SEEDS, PLANT, SIGMA, KERNEL, OUT, SURR, label_dir=LABEL_DIR, curriculum=CURRICULUM, n_x0=N_X0,
+              dtype=jnp.float64 if DTYPE == "float64" else jnp.float32, reps=OPT_REPS, sur_dir=SUR_DIR)
+    print(f"optimiser baselines done in {(time.time() - t0) / 60:.1f} min")
+    extra = (D.ROBUST_MODELS if RUN_ROBUST else []) + D.OPT_MODELS
+    done = D.done_runs(os.path.join(OUT, "dpc_results.csv"), SEEDS)
+    for m in extra:                                   # only finished (model, repeat) pairs, so no empty rows are cached
+        reps_done = [r for r in sorted(set(OPT_REPS) | set(ROBUST_REPS)) if (m["name"], r) in done]
+        D.run_diagnostic([m], SEEDS, PLANT, OUT, reps=reps_done, dtype=jnp.float64 if DTYPE == "float64" else jnp.float32,
+                         sur_dir=SUR_DIR)
+    R3 = D._read_runs(os.path.join(OUT, "dpc_results.csv"))
+    orc = R3[R3.model == "true plant (oracle)"][["seed", "rep", "cost_test_true"]].rename(columns={"cost_test_true": "oracle"})
+    R3 = R3.merge(orc, on=["seed", "rep"])
+    R3["gap"] = R3.cost_test_true / R3.oracle - 1
+    DG = pd.read_csv(os.path.join(OUT, "dpc_diag.csv"))
+    DG["rep"] = DG.rep.fillna(0).astype(int)
+    R3 = R3.merge(DG[["model", "seed", "rep", "oracle_on_model"]], on=["model", "seed", "rep"], how="left")
+    R3["failed"] = R3.gap > 0.10
+    R3["trapped"] = R3.failed & (R3.cost_test_own / R3.oracle_on_model > 1.05)
+    names = ["LN, MSE (3000)"] + [m["name"] for m in extra] + ["LN, two-stage"]
+    T3 = (R3[R3.model.isin(names)].groupby("model")
+          .agg(runs=("gap", "size"), failed=("failed", "sum"), trapped=("trapped", "sum"), median_gap_pct=("gap", "median"),
+               best_seed_gap_pct=("gap", "min"), s_per_seed=("train_s_per_seed", "median"))
+          .reindex(names))
+    T3[["median_gap_pct", "best_seed_gap_pct"]] *= 100
+    display(T3.round(3))"""
+
+md(OPT_MD)
+code(OPT_CODE)
 
 md("""## Save everything
 Download `dpc_out_backup.zip` (Kaggle: Output tab of the committed version). It holds `dpc_results.csv`, `dpc_curves.csv`,
