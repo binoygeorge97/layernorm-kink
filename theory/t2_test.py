@@ -116,7 +116,9 @@ def run(families, line=False):
                 gper = np.asarray(gs(c, p, s0, X0))
                 xs, us = roll_test(c, p, s0, xt)
                 ref_on_model = T.true_lqr_cost(np.asarray(xs).T, np.asarray(us).T)
-                r = R[(R.model == T.RESULTS_NAME[fam]) & (R.seed == s) & (R.rep == rep)].iloc[0]
+                rr = R[(R.model == T.RESULTS_NAME[fam]) & (R.seed == s) & (R.rep == rep)]
+                # before the DPC-through-surrogate runs exist (pre-registration, e.g. Task 2a.3) the outcome columns are NaN
+                r = rr.iloc[0] if len(rr) else pd.Series(dict(gap=np.nan, cost_test_own=np.nan))
                 row = dict(family=fam, rep=rep, seed=s, gap=r.gap, own_on_model=r.cost_test_own,
                            ref_on_model=ref_on_model, peak_Ju=float(met["Ju_sup_rel"][i]),
                            rstar_x=float(met["rstar_x"][i]) if "rstar_x" in met else np.nan,
