@@ -45,3 +45,7 @@ merged (main rows kept, verified identical). Deliberate change of a default outp
 the Drive file was never affected (the robust block never ran on Colab). (3) D6 restricted to the main models.
 Also seen (after PREREG_B01 Part 1 was committed): QUICK-mode B = 0.1 surrogates (2 seeds, 300 steps) give LN MSE median peak
 |J_u/B - 1| 7.5; not a result (short training), noted for transparency.
+2026-11-03 | Task 2a.3 tooling | (next commit) | analysis/make_prereg_B01.py dry-run on the QUICK B = 0.1 smoke folder (2 seeds,
+300-step surrogates) | QUICK only | pipeline works (LQR study 13 s, Lambda*, Part 2 text); the QUICK numbers (e.g. static norm
+fixed-LQR 35 % failed) reflect undertrained surrogates and are not results; seen after Part 1 was committed (8ecc750), which is
+unchanged | t2_test.py now loads the DPC controllers only for --line (no output change)

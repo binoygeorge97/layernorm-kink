@@ -1,7 +1,7 @@
 import sys, time; import pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, pandas as pd, level1_core as L, dpc_core as DC, phase_core as PC
 import os; _A,_B=(float(v) for v in os.environ.get("LK_PLANT","1.03,0.01").split(","))   # Task 2a: LK_PLANT="1.03,0.1"
-OUT=paths.DATA; plant=L.Plant() if (_A,_B)==(1.03,0.01) else L.Plant(A=_A,B=_B); seeds=list(range(10))
+OUT=paths.DATA; plant=L.Plant() if (_A,_B)==(1.03,0.01) else L.Plant(A=_A,B=_B); seeds=[int(v) for v in os.environ.get("LK_SEEDS","0,1,2,3,4,5,6,7,8,9").split(",")]
 FAM=[("LN MSE 3000","MSE (3000)"),("LN MSE 12000","MSE (12000)"),("LN slope from step 0","J_x + J_u (3000)"),
      ("LN two-stage","J_x + J_u (two-stage)"),("no norm","no norm, MSE"),("static norm","static norm, MSE")]
 models=[PC.Model.surrogate(OUT,s,seeds,n) for n,s in FAM]

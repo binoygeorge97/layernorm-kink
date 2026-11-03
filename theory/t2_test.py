@@ -17,7 +17,7 @@ import paths
 OUT = os.environ.get("T2_OUT", paths.out("theory"))
 os.makedirs(OUT, exist_ok=True)
 X_LAND = 0.2
-REPS = (0, 1, 2)
+REPS = tuple(int(r) for r in os.environ.get("T2_REPS", "0,1,2").split(","))
 
 
 def make_fns(norm):
@@ -105,7 +105,7 @@ def run(families, line=False):
         for rep in REPS:
             Co, cs = T.load_controllers("true_plant__oracle", rep)
             stem = T.FAMILIES[fam][2]
-            Cm = T.load_controllers(stem, rep)[0] if stem else None
+            Cm = T.load_controllers(stem, rep)[0] if (stem and line) else None   # only the --line analysis uses it
             for i, s in enumerate(seeds):
                 t0 = time.time()
                 p, s0, c = T.seed_slice(P, i), S0[i], T.seed_slice(Co, cs.index(s))
