@@ -46,8 +46,12 @@ def md_table(df):
 
 
 def main(mlp_root, lin_root):
-    M, Lr = lam(mlp_root, "mlp"), lam(lin_root, "linear")
-    M["arch"], Lr["arch"] = "mlp", "linear"
+    M = lam(mlp_root, "mlp")
+    if lin_root:
+        Lr = lam(lin_root, "linear")
+    else:                                   # linear oracle not trained yet: registered later as an addendum (Part B)
+        Lr = pd.read_csv(paths.out("theory", "t2_arch_unit_linear_Kstar.csv"))
+    M["arch"], Lr["arch"] = "mlp", ("linear" if lin_root else "linear_Kstar")
     P = pd.concat([M, Lr])[["arch", "family", "seed", "rep", "Lambda_star", "predicted_trap", "K_land_med", "factorisation_err"]]
     P.rename(columns={"predicted_trap": "predicted"}).to_csv(os.path.join(paths.REPO, "prereg", "PREREG_arch_predicted.csv"),
                                                               index=False)
@@ -83,7 +87,7 @@ Is the DPC trap an artefact of the recurrent (GRU) policy, and does the landing 
 | id | prediction | basis | how it is scored |
 |---|---|---|---|
 | P1 | MLP: trapped iff Lambda* > 12.1; predicted trapped: {int(M.predicted_trap.sum())} of 180 runs (list below) | Theorem 2, GRU test 17/20 hits, 0/160 false alarms | confusion matrix; held if hit rate >= 0.75 and false-alarm rate <= 0.05 (if no run is predicted trapped: held if at most 1 of 180 is trapped); partly if one of the two holds |
-| P2 | Linear: no run trapped (0 of 180). Lambda* of the trained linear oracle: max {Lr.Lambda_star.max():.2f}, {int(Lr.predicted_trap.sum())} run(s) above 12.1{'' if Kstar is None else f'; linear policy at K* = 10.2875: max {Kstar.Lambda_star.max():.2f}'} | memoryless policy with LQR-like gain stays in the safe band | held if 0 trapped; else failed, with the runs listed |
+| P2 | Linear: no run trapped (0 of 180). {('Lambda* of the trained linear oracle: max ' + format(Lr.Lambda_star.max(), '.2f') + ', ' + str(int(Lr.predicted_trap.sum())) + ' run(s) above 12.1') if lin_root else 'Trained linear oracle not available yet: its Lambda* is registered in an addendum before the linear Stage B run'}{'' if Kstar is None else f'; linear policy at K* = 10.2875: max {Kstar.Lambda_star.max():.2f}'} | memoryless policy with LQR-like gain stays in the safe band | held if 0 trapped; else failed, with the runs listed |
 | A1 | (copied, 23 Oct) The MLP reproduces the GRU result: LN MSE fails on seeds 1, 2, 8, 9 and slope-from-0 on 2, 3, 9; two-stage and kink-free on none; trap test > 1 on the failures | GRU result | per-seed failures (majority of repeats) vs the listed seeds |
 | A2 | (copied) The linear controller does NOT fail on those seeds | as P2 | failed runs on those seeds |
 | A3 | (copied) Trapped MLP policies are flat or inverted inside the kink band, recover the LQR slope outside; healthy ones are a saturated line of slope -10 to -17 | - | D9 policy maps, K_eff at x = 0, 0.5, 2 |
@@ -99,7 +103,7 @@ solution amplifies through the kink" (P1). Both are scored.
 Per-family summary of the MLP predictor (oracle Lambda*):
 {md_table(table(M))}
 
-Per-family summary of the linear predictor (trained linear oracle Lambda*):
+Per-family summary of the linear predictor ({'trained linear oracle' if lin_root else 'linear policy at K* = 10.2875, until the trained linear oracle exists'} Lambda*):
 {md_table(table(Lr))}
 
 Runs predicted trapped (MLP):
@@ -126,6 +130,6 @@ high-direct-gain policies", stated plainly.
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--mlp", required=True)
-    ap.add_argument("--linear", required=True)
+    ap.add_argument("--linear", default=None, help="omit if the linear oracle does not exist yet (addendum later)")
     a = ap.parse_args()
     main(a.mlp, a.linear)
