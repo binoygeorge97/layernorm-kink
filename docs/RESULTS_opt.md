@@ -79,3 +79,26 @@ text: out/slide_fixes.md, entry 12 (a proposal; nothing on the slide was changed
 Check for the "healthy: none" part (one per-start gradient evaluation at the good controller, healthy pairs): largest
 per-start norm 2.96 (LN MSE s3), 5.29 (LN MSE s7; 18 starts above 3), 0.26 (two-stage s2), 1.86 (two-stage s9); no start above
 1e3 on any healthy pair.
+
+## EXPLORATORY / POST HOC: lr 1e-4 warm start for 1000 epochs (same total step budget as plain at 1e-3 for 100), 2026-11-03
+`analysis/warmstart_harness.py --settings lr1e-4 --epochs 1000` (one process per pair, `out/opt/warmstart_lr1e-4_1000ep_*.csv`).
+True-plant cost, start -> epoch 1000 (largest value at any logged epoch):
+| pair | lr 1e-4, 1000 epochs | plain lr 1e-3, 100 epochs (for comparison) |
+|---|---|---|
+| LN MSE s1 | 2.556 -> 2.558 (2.574) | pushed off (3.85 at epoch 10, back to 2.60) |
+| LN MSE s2 | 2.638 -> 2.656 (2.656) | 2.64 -> 2.89 |
+| LN MSE s8 | 2.609 -> 2.648 (2.648) | 2.61 -> 5.25 |
+| LN MSE s9 | 2.639 -> 2.651 (2.651) | 2.64 -> 4.70 |
+| slope-from-0 s2 | 2.638 -> 2.638 (2.644) | 2.64 -> 5.87 |
+| slope-from-0 s9 | 2.639 -> 2.655 (2.655) | 2.64 -> 4.59 |
+| LN MSE s3 (healthy) | 2.419 -> 2.429 (2.448) | stays |
+| LN MSE s7 (healthy) | 2.597 -> 2.602 (2.603) | stays |
+| two-stage s2, s9 (healthy) | running at the time of writing | stays |
+(LN MSE s1, s3, s7 were also completed by the first attempt, stopped for time before it saved; its printed values are identical.)
+
+Answer: "stays", not "slower". With ten times smaller steps and the same total step budget, the good controller is kept on all
+6 broken pairs (largest rise +1.5 %, LN MSE s8). Together with item 2 (after the first step the gradients are tame and
+consistent, yet lr 1e-3 AdamW steps climb), this points to the STEP SIZE relative to the very local structure near the good
+controller: a 1e-3 relative step per weight lands where the surrogate's gradient field is chaotic, a 1e-4 step does not. It
+does not answer pre-registered P4 (lr 1e-4 from scratch does not rescue), which is about reaching the good controller from a
+random initialisation (Colab Run 4).
