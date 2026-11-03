@@ -42,3 +42,5 @@ plants", and the two-state plant (Task 2b) should also be low authority.
 ## Outcomes Part 1 (fill AFTER Stage A; do not edit anything above this line)
 | id | outcome (held / failed / partly) | numbers |
 |---|---|---|
+
+Part 1 registered at commit 8ecc750aa43798a65efc08265db7ab8f3e570acb (2026-11-03), before any B = 0.1 data existed.
