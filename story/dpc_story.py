@@ -24,9 +24,9 @@ def bg(ax, m, s, win=(-1.5, 1.5, -10, 10), n=161):
 # ================= S2 / A2: how the DPC controllers fail (true plant), ideal vs kink =================
 PANELS = [("oracle (DPC through the true plant), seed 2", "true plant (oracle)", None, 2),
           ("IDEAL: DPC through static-norm surrogate, seed 2", "static norm, MSE", SN, 2),
-          ("KINK: LN MSE seed 1 - parks at x = -0.58 or +1.71", "LN, MSE (3000)", LN, 1),
-          ("KINK: LN MSE seed 2 - oscillates, then parks at x = 1.1 (one start keeps cycling)", "LN, MSE (3000)", LN, 2),
-          ("KINK: LN MSE seed 9 - pushed the wrong way, diverges", "LN, MSE (3000)", LN, 9),
+          ("KINK: LN MSE seed 1\nparks at x = -0.58 or +1.71", "LN, MSE (3000)", LN, 1),
+          ("KINK: LN MSE seed 2\noscillates, then parks at x = 1.1\n(one start keeps cycling)", "LN, MSE (3000)", LN, 2),
+          ("KINK: LN MSE seed 9\npushed the wrong way, diverges", "LN, MSE (3000)", LN, 9),
           ("FIX: two-stage surrogate, seed 2", "LN, two-stage", PC.Model.surrogate(OUT, "J_x + J_u (two-stage)", seeds, "two-stage"), 2)]
 cmap = plt.get_cmap("coolwarm")
 fig, ax = plt.subplots(2, 6, figsize=(24, 8), gridspec_kw=dict(height_ratios=[1.5, 1]))
