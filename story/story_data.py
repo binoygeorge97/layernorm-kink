@@ -2,10 +2,10 @@
 Run: story_data.py (8 min CPU) -> lqr_story.py -> dpc_story.py. Figures S1-S4, animations A1-A3 in the story folder."""
 """Data for the failure-story figures: (1) warm start with checkpoints + per-start gradient norms, (2) closed-loop
 sensitivity along one rollout, (3) saved closed loops of the repeat-0 controllers on the true plant."""
-import sys, time, os; sys.path.insert(0, "/home/claude/kinkwork")
+import sys, time, os; import pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, pandas as pd, jax, jax.numpy as jnp, optax
 import level1_core as L, dpc_core as DC, phase_core as PC
-OUT = "/home/claude/data/dpc_out"; ST = "/home/claude/story"; plant = L.Plant(); seeds = list(range(10)); dt = jnp.float64
+OUT = paths.DATA; ST = paths.out("story"); plant = L.Plant(); seeds = list(range(10)); dt = jnp.float64
 tm = jax.tree_util.tree_map; leaves = jax.tree_util.tree_leaves
 t0 = time.time()
 pairs = [("MSE (3000)", 2), ("MSE (3000)", 9), ("static norm, MSE", 2)]

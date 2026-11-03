@@ -1,4 +1,5 @@
 """Toy example: four runs of 200 steps with made-up multipliers. Where the kink sits relative to the run decides."""
+import sys, pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 N = 200
 def run(kind):
@@ -25,7 +26,7 @@ for k in "ACDE":
 ax.axvline(50, color="k", lw=0.6, ls=":"); ax.text(52, 1e-14, "lands at the target\n(inside the kink)", fontsize=8)
 ax.set_yscale("log"); ax.set_xlabel("step k"); ax.set_ylabel("running product of |m|"); ax.legend(fontsize=8, frameon=False, loc="upper left")
 ax.spines[["top", "right"]].set_visible(False); fig.tight_layout()
-fig.savefig("/home/claude/companion/bg17/figures/fig_toy.png", dpi=150)
+fig.savefig(paths.out("companion", "background", "figures", "fig_toy.png"), dpi=150)
 print("steps of 0.9 needed to cancel one x10:", np.log(10) / -np.log(0.9))
 print("block of 4 (one -10, three 0.9): growth per step", (np.log(10) + 3 * np.log(0.9)) / 4)
 print("block of 25 (one -10, 24 x 0.9): growth per step", (np.log(10) + 24 * np.log(0.9)) / 25)

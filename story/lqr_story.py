@@ -1,10 +1,10 @@
 """LQR failure story (rebuilt 2026-10-24): same plant, same start x0 = 1, same setpoint r = 0 in every column."""
-import sys; sys.path.insert(0, "/home/claude/kinkwork")
+import sys; import pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt; from matplotlib.colors import TwoSlopeNorm; from matplotlib.patches import Ellipse
 from matplotlib.animation import FuncAnimation, PillowWriter
 import level1_core as L, phase_core as PC
-OUT = "/home/claude/data/dpc_out"; ST = "/home/claude/story"; plant = L.Plant(); seeds = list(range(10))
+OUT = paths.DATA; ST = paths.out("story"); plant = L.Plant(); seeds = list(range(10))
 LN = PC.Model.surrogate(OUT, "MSE (3000)", seeds, "LN MSE"); SN = PC.Model.surrogate(OUT, "static norm, MSE", seeds, "static")
 truth = PC.Model.true_plant(plant, seeds)
 R0, X0 = 0.0, 1.0; WIN = (-0.6, 2.4, -11, 11); KLIM = 40

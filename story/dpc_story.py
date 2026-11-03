@@ -1,11 +1,11 @@
 """Failure-story figures (2026-10-24). Needs <OUT>/surrogates and the repeat-0 controllers (GRU) of dpc_out, plus story_data.py's outputs.
 Run: story_data.py (8 min CPU) -> lqr_story.py -> dpc_story.py. Figures S1-S4, animations A1-A3 in the story folder."""
-import sys; sys.path.insert(0, "/home/claude/kinkwork")
+import sys; import pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, pandas as pd, matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt; from matplotlib.colors import TwoSlopeNorm; from matplotlib.patches import Ellipse
 from matplotlib.animation import FuncAnimation, PillowWriter
 import level1_core as L, dpc_core as DC, phase_core as PC
-OUT = "/home/claude/data/dpc_out"; ST = "/home/claude/story"; plant = L.Plant(); seeds = list(range(10))
+OUT = paths.DATA; ST = paths.out("story"); plant = L.Plant(); seeds = list(range(10))
 CL = np.load(f"{ST}/closed_loops.npz"); starts = CL["starts"]
 SENS = np.load(f"{ST}/sens.npz"); WK = np.load(f"{ST}/warm_ckpt.npz"); WC = pd.read_csv(f"{ST}/warm_ckpt.csv")
 LN = PC.Model.surrogate(OUT, "MSE (3000)", seeds, "LN MSE"); SN = PC.Model.surrogate(OUT, "static norm, MSE", seeds, "static")

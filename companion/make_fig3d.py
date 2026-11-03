@@ -1,12 +1,12 @@
 """Figure f16: the slope maps of slide 5 drawn as 3-D surfaces, so the kink shows as crests and troughs.
 Reads the saved surrogates (same models and seeds as make_figs.py)."""
-import sys; sys.path.insert(0, "/home/claude/kinkwork")
+import sys; import pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 import level1_core as L, phase_core as PC
 
-OUT = "/home/claude/data/dpc_out"; FD = "/home/claude/companion/figures"; plant = L.Plant(); A, B = plant.A, plant.B
+OUT = paths.DATA; FD = paths.out("companion", "figures"); plant = L.Plant(); A, B = plant.A, plant.B
 seeds = list(range(10))
 LN = PC.Model.surrogate(OUT, "MSE (3000)", seeds, "LN MSE 3000")
 SN = PC.Model.surrogate(OUT, "static norm, MSE", seeds, "static norm")

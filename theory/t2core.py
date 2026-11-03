@@ -2,6 +2,7 @@
 Theorem 1 on the trained surrogates and Theorem 2 on the saved DPC controllers. Equations copied from
 level1_core.F_point / _norm and dpc_core.gru_step / rollout / dpc_loss (float64 throughout)."""
 import os
+import sys, pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np
 import jax
 import jax.numpy as jnp
@@ -12,7 +13,7 @@ H, EPS = 16, 1e-6
 A_TRUE, B_TRUE = 1.03, 0.01
 Q_X, R_U, Q_F, N_HOR = 5.0, 0.1, 50.0, 200
 U_BOUND, HIDDEN, N_X0, X0_RANGE = 10.0, 64, 1000, 3.0
-DATA = os.environ.get("T2_DATA", "/home/claude/data")
+DATA = os.environ.get("T2_DATA", paths.DATA)
 
 FAMILIES = {  # display name -> (surrogate file, norm, controller file stem or None)
     "LN MSE 3000": ("MSE__3000", "layer", "LN__MSE__3000"),

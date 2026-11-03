@@ -1,12 +1,12 @@
 """Figures for the companion document (Part 1 of the deck, slides 1-13). Reads the saved surrogates and lqr_study.csv (run_lqr_study.py)."""
-import sys, json; sys.path.insert(0, "/home/claude/kinkwork")
+import sys, json; import pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, pandas as pd, matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 from matplotlib.patches import Ellipse, FancyBboxPatch
 import level1_core as L, phase_core as PC
 
-OUT = "/home/claude/data/dpc_out"; FD = "/home/claude/companion/figures"; plant = L.Plant(); A, B = plant.A, plant.B
+OUT = paths.DATA; FD = paths.out("companion", "figures"); plant = L.Plant(); A, B = plant.A, plant.B
 seeds = list(range(10))
 LN = PC.Model.surrogate(OUT, "MSE (3000)", seeds, "LN MSE 3000")
 SN = PC.Model.surrogate(OUT, "static norm, MSE", seeds, "static norm")
@@ -220,7 +220,7 @@ fig.tight_layout(); fig.savefig(f"{FD}/f08_lqr_timeline.png"); plt.close(fig)
 facts["cases"] = case_facts
 
 # ---------------------------------------------------------------- study-table figures
-df = pd.read_csv("/home/claude/companion/lqr_study.csv"); df["far"] = (df.x0 - df.r).abs() >= 0.5
+df = pd.read_csv(paths.find("lqr_study.csv", paths.out("companion"), paths.REPO + "/companion")); df["far"] = (df.x0 - df.r).abs() >= 0.5
 df["fail"] = df.diverged | (df.gap > 0.1); df["cat"] = df.diverged | (df.gap > 1.0)
 f = df[df.far]
 FAMS = ["LN MSE 3000", "LN MSE 12000", "LN slope from step 0", "LN two-stage", "no norm", "static norm"]
@@ -284,7 +284,7 @@ fig.tight_layout(); fig.savefig(f"{FD}/f12_setpoint_law.png"); plt.close(fig)
 facts["fail_vs_d"] = dict(fail=rate.round(1).tolist(), cat=cat.round(1).tolist(), n=n.tolist())
 
 # F15 swap test rates (left panel of W2, redrawn)
-S = pd.read_csv("/home/claude/story/swap_lqr_rates.csv")
+S = pd.read_csv(paths.find("swap_lqr_rates.csv", paths.out("story"), paths.REPO + "/story"))
 designs = list(dict.fromkeys(S.design)); fams = list(dict.fromkeys(S.surrogate))
 short = ["1: surrogate A^, B^", "2: true A, surrogate B^", "3: surrogate A^, true B", "4: true A, B (only u^ from surrogate)"]
 cols = ["#333333", "#7570b3", "#D55E00", "#009E73"]
@@ -312,5 +312,5 @@ for s in (9, 8):
 facts["swap_r0"] = sw
 facts["Ju_sup_rel_LN3000"] = LN.met["Ju_sup_rel"].round(2).tolist(); facts["Jx_sup_LN3000"] = LN.met["Jx_sup"].round(3).tolist()
 facts["kink"] = dict(zx=np.round(zx, 3).tolist(), zu=np.round(zu, 3).tolist(), rx=np.round(rx, 3).tolist(), ru=np.round(ru, 3).tolist())
-json.dump(facts, open("/home/claude/companion/facts.json", "w"), indent=1, default=float)
+json.dump(facts, open(paths.out("companion", "facts.json"), "w"), indent=1, default=float)
 print(json.dumps(facts, indent=1, default=float))

@@ -1,8 +1,8 @@
 """Which slope error hurts control: J_x (A_hat) or J_u (B_hat)? Swap one for the true value and re-measure."""
-import sys; sys.path.insert(0, "/home/claude/kinkwork")
+import sys; import pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, pandas as pd, jax, jax.numpy as jnp
 import level1_core as L, dpc_core as DC, phase_core as PC
-OUT = "/home/claude/data/dpc_out"; plant = L.Plant(); seeds = list(range(10)); dt = jnp.float64; tm = jax.tree_util.tree_map
+OUT = paths.DATA; plant = L.Plant(); seeds = list(range(10)); dt = jnp.float64; tm = jax.tree_util.tree_map
 A, B = plant.A, plant.B
 # ------------------ 1. LQR fixed at the setpoint ------------------
 print("=== LQR fixed: runs failed (gap > 10 % or diverged), % of runs with |x0 - r| >= 0.5 ===")
@@ -51,6 +51,6 @@ for sur, s in pairs:
         d = jax.vmap(jax.grad(fin, argnums=1), in_axes=(None, 0))(C1, X0[:64, 0])
         row[f"grad | {tag}"] = gn; row[f"lyap | {tag}"] = float(np.max(np.log(np.abs(np.asarray(d)) + 1e-300)) / 200)
     rows.append(row); print(sur, s, "done", flush=True)
-D = pd.DataFrame(rows); D.to_csv("/home/claude/story/attribution_dpc.csv", index=False)
+D = pd.DataFrame(rows); D.to_csv(paths.out("story", "attribution_dpc.csv"), index=False)
 g = D[["surrogate", "seed", "broke"] + [c for c in D if c.startswith("grad")]]; l = D[["surrogate", "seed", "broke"] + [c for c in D if c.startswith("lyap")]]
 print(g.to_string(index=False, float_format=lambda v: f"{v:.2g}")); print(l.round(3).to_string(index=False))

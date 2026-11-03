@@ -1,20 +1,20 @@
 """Two figures for the slide 17 background note:
 fig_zones.png  - per-step input slope and scalar multiplier along the three runs of slide 17
 fig_lambda.png - landing amplification Lambda* for all 180 runs (theory results)."""
-import sys; sys.path.insert(0, "/home/claude/kinkwork")
+import sys; import pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, pandas as pd, jax, jax.numpy as jnp, matplotlib
 matplotlib.use("Agg"); import matplotlib.pyplot as plt
 jax.config.update("jax_enable_x64", True)
 import level1_core as L, dpc_core as DC, phase_core as PC
 RED, BLUE, GREY = "#8B1A1A", "#1B3A6B", "#9a9a9a"
-OUT = "/home/claude/data/dpc_out"; plant = L.Plant(); B = plant.B
-FIG = "/home/claude/companion/bg17/figures"; tm = jax.tree_util.tree_map
+OUT = paths.DATA; plant = L.Plant(); B = plant.B
+FIG = paths.out("companion", "background", "figures"); tm = jax.tree_util.tree_map
 plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False})
 
 # ---------- per-step multipliers along the three runs ----------
 Co, _ = DC.load_controllers(OUT, "true plant (oracle)", 0)
 norm_of = {"MSE (3000)": "layer", "static norm, MSE": "static"}
-S = np.load("/home/claude/story/sens.npz")
+S = np.load(paths.out("story", "sens.npz"))
 runs = [("static norm, MSE", 2, "Static norm, seed 2"), ("MSE (3000)", 2, "LN MSE 3000, seed 2"), ("MSE (3000)", 8, "LN MSE 3000, seed 8")]
 fig, ax = plt.subplots(3, 2, figsize=(11, 9.5), sharex=True)
 for r, (sur, s, ttl) in enumerate(runs):
@@ -46,7 +46,7 @@ fig.legend(handles=h_, loc="lower center", ncol=3, frameon=False, bbox_to_anchor
 fig.tight_layout(rect=(0, 0.03, 1, 1)); fig.savefig(f"{FIG}/fig_zones.png", dpi=150, bbox_inches="tight"); plt.close(fig)
 
 # ---------- Lambda* for all 180 runs ----------
-d = pd.read_csv("/home/claude/companion/bg17/lambda_runs.csv"); d["trap"] = d.trap.astype(bool)
+d = pd.read_csv(paths.find("lambda_runs.csv", paths.out("companion", "background"), paths.REPO + "/companion/background")); d["trap"] = d.trap.astype(bool)
 fams = ["LN MSE 3000", "LN slope from 0", "LN MSE 12000", "LN two-stage", "no norm", "static norm"]
 names = ["LN MSE\n3000", "LN slope\nfrom step 0", "LN MSE\n12000", "LN\ntwo-stage", "no norm", "static\nnorm"]
 fig, a = plt.subplots(figsize=(9.5, 4.6)); rng = np.random.default_rng(0)

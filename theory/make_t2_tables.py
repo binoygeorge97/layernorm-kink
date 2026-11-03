@@ -1,6 +1,8 @@
 """LaTeX tables for the Theorem 2 test, generated from the result files (no hand transcription)."""
+import sys, pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
+import os
 import numpy as np, pandas as pd
-O = "out"
+O = os.environ.get("T2_OUT", paths.out("theory"))
 G = pd.concat([pd.read_csv(f"{O}/t2_runs_LNMSE3000.csv"), pd.read_csv(f"{O}/t2_runs_LNMSE12000_LNslopefrom0_LNtwo-stage_nonorm_staticnorm.csv")], ignore_index=True)
 G["ratio"] = G.own_on_model / G.ref_on_model
 G["failed"] = G.gap > 0.1
@@ -26,7 +28,7 @@ for _, r in L.sort_values(["rep", "seed"]).iterrows():
     tr = "yes" if r.trap else ("mism." if r.failed else "no")
     lines.append(f"{r.rep} & {r.seed} & {gap(r.gap)} & {r.ratio:.2f} & {tr} & {r.S_seg_max:.1f} & {r.true_Ju:.1f} & {r.true_Jx:.1f} & "
                  f"{r.S_lin:.1f} & {sci(r.grad_batch)} & {sci(r.grad_nbhd_max)} & {r.lyap_exact_max:+.3f} \\\\")
-open("theory/tab_lnmse.tex", "w").write("\n".join(lines) + "\n")
+open(f"{O}/tab_lnmse.tex", "w").write("\n".join(lines) + "\n")
 
 rows = []
 for f in ["LN MSE 3000", "LN MSE 12000", "LN slope from 0", "LN two-stage", "no norm", "static norm"]:
@@ -36,7 +38,7 @@ for f in ["LN MSE 3000", "LN MSE 12000", "LN slope from 0", "LN two-stage", "no 
     gtr = (g.grad_batch > 1e3)
     rows.append(f"{f} & {g.failed.sum()} & {g.trap.sum()} & {tp} & {fn} & {fp} & {g[~g.trap].S_seg_max.max():.1f} & "
                 f"{(gtr & g.trap).sum()} & {(gtr & ~g.trap).sum()} & {m.S_seg_max.max():.1f} \\\\")
-open("theory/tab_families.tex", "w").write("\n".join(rows) + "\n")
+open(f"{O}/tab_families.tex", "w").write("\n".join(rows) + "\n")
 print(f"threshold {thr:.2f}")
-print(open("theory/tab_families.tex").read())
-print(open("theory/tab_lnmse.tex").read())
+print(open(f"{O}/tab_families.tex").read())
+print(open(f"{O}/tab_lnmse.tex").read())

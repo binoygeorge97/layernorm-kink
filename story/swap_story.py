@@ -1,9 +1,9 @@
 """Swap test figures: which slope error (J_x or J_u) drives the LQR and DPC failures."""
-import sys; sys.path.insert(0, "/home/claude/kinkwork")
+import sys; import pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
 import numpy as np, pandas as pd, matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm; from matplotlib.patches import Ellipse
 import level1_core as L, phase_core as PC
-OUT = "/home/claude/data/dpc_out"; ST = "/home/claude/story"; plant = L.Plant(); seeds = list(range(10)); A, B = plant.A, plant.B
+OUT = paths.DATA; ST = paths.out("story"); plant = L.Plant(); seeds = list(range(10)); A, B = plant.A, plant.B
 LN = PC.Model.surrogate(OUT, "MSE (3000)", seeds, "LN MSE"); truth = PC.Model.true_plant(plant, seeds)
 R0, X0 = 0.0, 1.0; WIN = (-0.6, 2.4, -11, 11)
 VARIANTS = [("surrogate A^ and B^ (what LQR normally gets)", lambda ah, bh: (ah, bh)), ("TRUE A, surrogate B^", lambda ah, bh: (np.full_like(ah, A), bh)),

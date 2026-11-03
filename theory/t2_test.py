@@ -12,8 +12,9 @@ controller to the reference controller, 21 points, LN MSE 3000 only)."""
 import sys, time, os
 import numpy as np, pandas as pd, jax, jax.numpy as jnp
 import t2core as T
+import paths
 
-OUT = os.environ.get("T2_OUT", "/home/claude/work/out")
+OUT = os.environ.get("T2_OUT", paths.out("theory"))
 os.makedirs(OUT, exist_ok=True)
 X_LAND = 0.2
 REPS = (0, 1, 2)

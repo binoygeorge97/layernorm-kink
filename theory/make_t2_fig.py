@@ -3,13 +3,15 @@ Panel 1: landing amplification Lambda* of the GRU reference controller, every ru
 runs filled dark red, others open dark blue. Panel 2: gradient norm of the surrogate DPC loss at the reference controller
 and the largest over 8 neighbours (relative weight perturbation 1e-3) against Lambda*, LN MSE 3000. Panel 3: Lambda* of the
 memoryless LQR-gain policy against Lambda* of the GRU reference, same surrogate and starts."""
+import sys, pathlib; sys.path.insert(0, str(next(p for p in pathlib.Path(__file__).resolve().parents if (p / "paths.py").exists()))); import paths
+import os
 import numpy as np, pandas as pd, matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 RED, BLUE, GREY = "#8B1A1A", "#1B3A6B", "#888888"
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 9, "axes.spines.top": False, "axes.spines.right": False})
-O = "/home/claude/work/out"
+O = os.environ.get("T2_OUT", paths.out("theory"))
 G = pd.concat([pd.read_csv(f"{O}/t2_runs_LNMSE3000.csv"),
                pd.read_csv(f"{O}/t2_runs_LNMSE12000_LNslopefrom0_LNtwo-stage_nonorm_staticnorm.csv")], ignore_index=True)
 G["trap"] = (G.gap > 0.1) & (G.own_on_model / G.ref_on_model > 1.05)
@@ -72,5 +74,5 @@ a.set_xlabel(r"$\Lambda^\star$, GRU reference (direct gain about 17 to 22)")
 a.set_ylabel(r"$\Lambda^\star$, memoryless policy at the LQR gain 10.29")
 a.set_title("Same surrogates and starts, two good policies", fontsize=9.5)
 fig.tight_layout()
-fig.savefig("/home/claude/work/theory/figures/t1_theorem2_test.png", dpi=200)
+fig.savefig(paths.out("theory", "figures", "t1_theorem2_test.png"), dpi=200)
 print("saved")
