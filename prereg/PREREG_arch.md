@@ -84,3 +84,55 @@ high-direct-gain policies", stated plainly.
 ## Part B (linear controller): to be appended from the trained linear oracle (Run 2) before the linear Stage B run
 
 Part A (MLP) registered at commit f945a5cd587d2a3cd21423ae0fbc1ba1e21dfece (2026-11-03), before any MLP controller was trained through a surrogate.
+
+Written 2026-11-03, after Run 2 (linear oracle, `MyDrive/dpc_out_linear_stageA.zip` -> `data/dpc_out_linear`), BEFORE any linear
+controller was trained through a surrogate. Nothing in Part A above is changed.
+
+Linear oracle: gain K = 16.70 to 17.00 on all 30 runs (not the LQR gain 10.29: the horizon-200 DPC optimum with the
+terminal weight is steeper, as noted on 23 Oct), offset |b| <= 0.012; true-plant cost 2.5235 to
+2.5236. With K ~ 17 the upper edge of the multiplier's safe band at A is (A + 1) / K = 11.9 B instead of
+19.7 B, so an input slope that is too large by a factor 12 already expands; the LN MSE 3000 peaks are 6.7 to 201 B.
+
+| id | prediction | basis | how it is scored |
+|---|---|---|---|
+| P2 (Part A, unchanged) | Linear: no run trapped (0 of 180) | the K* = 10.29 policy has Lambda* <= 8.75 | held if 0 trapped |
+| P2' | Linear: trapped iff Lambda* of the TRAINED linear oracle > 12.1 (same rule as P1); predicted trapped: 12 of 180 runs, all LN MSE 3000, seeds 1, 2, 8, 9 in every repeat (list below) | Theorem 2 with the exact memoryless multiplier of the trained oracle | confusion matrix; held if hit rate >= 0.75 and false-alarm rate <= 0.05 |
+| A2 (copied, unchanged) | the linear controller does NOT fail on the GRU-trapped seeds | 23 Oct smoke test | failed runs on those seeds |
+
+P2 and A2 on one side and P2' on the other now make OPPOSITE predictions for LN MSE 3000 seeds 1, 2, 8, 9 (written before
+results). The difference is the gain: P2 was derived from the LQR-gain policy, P2' from the controller DPC actually converges to
+through the true plant. Closest call below the threshold: LN slope from 0, seed 2, repeat 1, Lambda* = 11.04.
+
+Per family (trained linear oracle):
+| family | runs | predicted | max Lambda* | median K_land |
+|---|---|---|---|---|
+| LN MSE 3000 | 30 | 12 | 93.37 | 16.84 |
+| LN MSE 12000 | 30 | 0 | 1.78 | 16.86 |
+| LN slope from 0 | 30 | 0 | 11.04 | 16.86 |
+| LN two-stage | 30 | 0 | 1.65 | 16.86 |
+| no norm | 30 | 0 | 0.00 | 16.85 |
+| static norm | 30 | 0 | 0.00 | 16.85 |
+
+Runs predicted trapped (P2'):
+- LN MSE 3000, seed 1, repeat 0: Lambda* = 86.5
+- LN MSE 3000, seed 2, repeat 0: Lambda* = 29.7
+- LN MSE 3000, seed 8, repeat 0: Lambda* = 87.3
+- LN MSE 3000, seed 9, repeat 0: Lambda* = 75.5
+- LN MSE 3000, seed 1, repeat 1: Lambda* = 92.0
+- LN MSE 3000, seed 2, repeat 1: Lambda* = 35.0
+- LN MSE 3000, seed 8, repeat 1: Lambda* = 93.4
+- LN MSE 3000, seed 9, repeat 1: Lambda* = 77.1
+- LN MSE 3000, seed 1, repeat 2: Lambda* = 80.1
+- LN MSE 3000, seed 2, repeat 2: Lambda* = 44.4
+- LN MSE 3000, seed 8, repeat 2: Lambda* = 83.4
+- LN MSE 3000, seed 9, repeat 2: Lambda* = 53.2
+
+Note on the exactness check (written before results): sum log|m_k| = log|dx_N/dx_0| fails on 15 LN MSE 3000 runs and 6
+slope-from-0 runs. On slope-from-0 it is underflow of strongly contracting starts (as for the MLP). On the LN MSE runs it is
+chaos: t2_arch computes dx_N/dx_0 along a second rollout, and with products of multipliers up to e^93 while |x| stays below
+0.01, round-off separates the two rollouts after about 80 steps (checked step by step on seed 9 repeat 0: identical to step 60,
+different from step 100). Lambda* uses the multipliers of one rollout and is not affected; the check is only valid for loops
+that do not amplify.
+
+Linear run-level predictions appended to `prereg/PREREG_arch_predicted.csv` (arch = "linear"; the rows of Part A, including
+arch = "linear_Kstar", are unchanged).
