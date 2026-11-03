@@ -1,0 +1,451 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{figures/}}
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+
+% plain theorem style: no bold head, no italic body
+\newtheoremstyle{plainnote}{0.6em}{0.6em}{\normalfont}{}{\normalfont}{.}{0.5em}{}
+\theoremstyle{plainnote}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+\newtheorem{definition}{Definition}
+\renewenvironment{proof}[1][Proof]{\par\noindent #1.\ }{\hfill$\square$\par}
+
+\makeatletter\newcommand{\rowsfrom}[1]{\@@input #1 }\makeatother
+\newcommand{\R}{\mathbb R}
+\newcommand{\one}{\mathbf 1}
+\newcommand{\cp}{c_\perp}
+\newcommand{\Jx}{\hat J_x}
+\newcommand{\Ju}{\hat J_u}
+
+\title{Theory notes for the LayerNorm kink\\[0.3em]
+\large Theorem 1: exact low-dimensional reduction of pre-norm LayerNorm, with corollaries\\
+Theorem 2: a closed-loop multiplier condition for the DPC trap, tested on the saved runs}
+\author{Binoy George}
+\date{28 October 2026 (draft)}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+%=====================================================================
+\section{Summary}\label{sec:summary}
+
+These notes state and prove two results and test the second against the saved DPC runs.
+
+Theorem 1 is a structural lemma. When the map in front of a LayerNorm is affine, $h=Ez+b$ with $z\in\R^{n_z}$, LayerNorm of $h$ is an isometric copy of a fixed map $\phi:\R^n\to\R^{n+1}$, $n=\mathrm{rank}(PE)$, evaluated at $w=U^\top Q_E(z-z^\star)$. Once $H$ and $\epsilon$ are fixed, $\phi$ depends on a single number, the kink size $D=\sqrt H\,\delta$ (equivalently $\|\cp\|$, since $D^2=\|\cp\|^2+H\epsilon$). Everything the project has measured about the kink (location, width, peak gain, petals, invisibility to the value loss, irrelevance of $\epsilon$) follows from properties of $\phi$, and the corollaries make each of them a precise statement. The reduction is elementary; its value is that it turns the empirical kink anatomy into theorems with constants.
+
+Theorem 2 connects the kink to the DPC failure. Along the good policy's rollout through the surrogate, the closed loop multiplies a state perturbation by $m_k=\Jx-\Ju K_k$ per step. The costate (and with it the training gradient) is a sum of products of these multipliers. If no stretch of the path expands, the costate stays of the size of the rollout; if the landing part contains an expanding stretch, the costate at its start is amplified by the stretch's total gain, provided the sources inside the stretch do not cancel it (on the data, the costate reaches $e^{\Lambda}$ to within a factor of 3000). A step expands exactly when $\Ju$ leaves a stability band, which for the gains used here is $[0.29\,B,\ 19.7\,B]$: wrong-sign or nearly zero input slope (the petal arms), or more than about twenty times too large (the peak). By Theorem 1 the slopes differ from the constant skip slope only through the branch, whose slope is largest in the kink and decays algebraically along its petals; so, with a skip slope inside the band, expansion happens only in the kink and its arms. That is why it matters whether the arms cut the landing path (orientation) and not only how tall the kink is.
+
+Test (Section~\ref{sec:test}). The landing amplification $\Lambda^\star$ (the largest log-gain of any landing segment of the good GRU controller's rollouts through the surrogate, over the 1000 training starts) separates the 12 trapped LN MSE 3000 runs from the 18 others completely, with a margin of a factor $e^{8}$ in amplification. It needs no DPC training, and it catches the trapped run whose gradient at the good policy is small (repeat 2, seed 8: 3.7). With the threshold fixed on LN MSE 3000 and applied to the other 150 runs it flags no untrapped run and 5 of the 8 slope-from-step-0 traps: 17 of 20 traps and 0 of 160 others overall. Replacing $\Ju$ by $B$ removes the expansion on 9 of the 12 LN MSE traps, replacing $\Jx$ by $A$ on none. The condition depends on the policy: a memoryless policy at the LQR gain never expands on any surrogate, which predicts that the two-parameter linear DPC policy is not trapped. The main limitation: for the GRU the statistic uses the instantaneous (direct) gain, which is not the exact closed loop with memory.
+
+Notation follows the reference derivation (``The Prenorm LayerNorm Jacobian Anomaly'', September 2026) and the companion notes: $P$ the centring projector, $Q_E=PE=[q_x\ q_u]$, $c=Pb$, centre $z^\star$, residual $\cp$, offset $s=z-z^\star$, $\delta^2=\|\cp\|^2/H+\epsilon$, $D=\sqrt H\,\delta$. $Q$, $R$, $Q_f$ are the LQR and DPC weights. Seeds are written ``seed 2'' and never $s$.
+
+%=====================================================================
+\section{Setting}\label{sec:setting}
+
+Let $H\ge2$, $\one\in\R^H$ the all-ones vector and $P=I-\frac1H\one\one^\top$ the orthogonal projector onto $\one^\perp$. For $\epsilon\ge0$ LayerNorm without its elementwise affine part is
+\begin{equation}
+\mathrm{LN}(h)=\frac{Ph}{\sigma(h)},\qquad \sigma(h)=\sqrt{\frac{\|Ph\|^2}{H}+\epsilon},
+\label{eq:ln}
+\end{equation}
+defined whenever $\sigma(h)>0$ (always if $\epsilon>0$; if $\epsilon=0$ it requires $Ph\neq0$). The learned gain and shift act afterwards, $\gamma\odot\mathrm{LN}(h)+\beta$.
+
+The map in front of the norm is affine, $h(z)=Ez+b$ with $z\in\R^{n_z}$, $E\in\R^{H\times n_z}$, $b\in\R^H$. In the surrogates $n_z=2$, $z=(x,u)$, $H=16$, $\epsilon=10^{-6}$. Write
+\begin{equation}
+Q_E=PE,\qquad c=Pb,\qquad n=\mathrm{rank}\,Q_E\le\min(n_z,\,H-1),
+\end{equation}
+$\Pi$ for the orthogonal projector onto $\mathrm{range}(Q_E)$ and $U\in\R^{H\times n}$ for a matrix whose orthonormal columns span $\mathrm{range}(Q_E)$, so $UU^\top=\Pi$. The rank is at most $H-1$ because $\mathrm{range}(Q_E)\subseteq\one^\perp$. Define
+\begin{equation}
+\cp=(I-\Pi)\,c,\qquad z^\star=-Q_E^{+}c,\qquad s=z-z^\star,\qquad w(z)=U^\top Q_E\,s\in\R^n,\qquad \rho=\|w\|=\|Q_E s\|,
+\end{equation}
+\begin{equation}
+\delta^2=\frac{\|\cp\|^2}{H}+\epsilon,\qquad D=\sqrt H\,\delta=\sqrt{\|\cp\|^2+H\epsilon},
+\end{equation}
+where $Q_E^+$ is the Moore-Penrose pseudoinverse. When $n=n_z$ (full column rank, the case of the surrogates) $z^\star=-(Q_E^\top Q_E)^{-1}Q_E^\top c$ as in the companion notes.
+
+%=====================================================================
+\section{Theorem 1: exact reduction}\label{sec:thm1}
+
+\begin{theorem}[exact low-dimensional reduction of pre-norm LayerNorm]\label{thm:red}
+With the definitions of Section~\ref{sec:setting}:
+\begin{enumerate}
+\item[(i)] Centre. $Q_Ez+c$ has minimal norm exactly on the affine set $\{z:\ Q_Ez=-\Pi c\}=z^\star+\ker Q_E$; the minimiser is unique if and only if $n=n_z$. The minimal value is $\|\cp\|$, and $\cp\perp\mathrm{range}(Q_E)$, $\cp\perp\one$.
+\item[(ii)] Reduction. Suppose $n<H-1$. Let $v=\cp/\|\cp\|$ if $\cp\neq0$, and otherwise any unit vector orthogonal to $\mathrm{range}(U)$ and to $\one$. Put $V=[\,U\ \ v\,]\in\R^{H\times(n+1)}$. Then $V^\top V=I$, $V^\top\one=0$, and for every $z$ with $\rho(z)^2+D^2>0$,
+\begin{equation}
+\mathrm{LN}(Ez+b)=V\,\phi\big(w(z)\big),\qquad \phi(w)=\frac{\sqrt H}{\sqrt{\|w\|^2+D^2}}\begin{bmatrix} w\\ \|\cp\|\end{bmatrix}\in\R^{n+1}.
+\label{eq:red}
+\end{equation}
+\item[(iii)] Bias residual. $\cp=0$ if and only if $b\in\mathrm{range}(E)+\mathrm{span}(\one)$, a subspace of $\R^H$ of dimension $n+1$. Hence $\cp=0$ for every $b$ if and only if $n=H-1$.
+\item[(iv)] Edge cases. If $\cp=0$ the last entry of $\phi$ vanishes identically, $v$ drops out, and
+\begin{equation}
+\mathrm{LN}(Ez+b)=U\,\phi_0\big(w(z)\big),\qquad \phi_0(w)=\frac{\sqrt H\,w}{\sqrt{\|w\|^2+H\epsilon}},
+\label{eq:red0}
+\end{equation}
+which holds for every $n\le H-1$, including $n=H-1$, where no admissible $v$ exists. If moreover $\epsilon=0$, then $D=0$, LayerNorm is undefined on the set $z^\star+\ker Q_E$, and (\ref{eq:red0}) becomes the radial projection $w\mapsto\sqrt H\,w/\|w\|$ on the rest of $\R^{n_z}$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+(i) Since $\Pi c\in\mathrm{range}(Q_E)$ the equation $Q_Ez=-\Pi c$ is solvable; its solution set is $Q_E^+(-\Pi c)+\ker Q_E=z^\star+\ker Q_E$ (because $Q_E^+\Pi=Q_E^+$). For any $z$, $Q_Ez+c=(Q_Ez+\Pi c)+\cp$ with the first term in $\mathrm{range}(Q_E)$ and $\cp=(I-\Pi)c$ orthogonal to it, so $\|Q_Ez+c\|^2=\|Q_Ez+\Pi c\|^2+\|\cp\|^2\ge\|\cp\|^2$, with equality exactly when $Q_Ez=-\Pi c$. The solution set is a single point if and only if $\ker Q_E=\{0\}$, i.e.\ $n=n_z$. Finally $c=Pb\in\one^\perp$ and $\mathrm{range}(Q_E)\subseteq\one^\perp$, so $\cp=c-\Pi c\in\one^\perp$.
+
+(ii) The columns of $U$ are orthonormal and lie in $\one^\perp$. If $\cp\ne0$, $v=\cp/\|\cp\|$ is a unit vector orthogonal to $\mathrm{range}(U)$ and to $\one$ by (i). If $\cp=0$, such a vector exists because $\mathrm{range}(U)+\mathrm{span}(\one)$ has dimension $n+1<H$. Hence $V^\top V=I$ and $V^\top\one=0$. Next, $Ph=Q_Ez+c=Q_Es+(Q_Ez^\star+c)=Q_Es+\cp$, since $Q_Ez^\star=-\Pi c$. Because $Q_Es\in\mathrm{range}(Q_E)$, $Q_Es=UU^\top Q_Es=Uw$, and $\cp=\|\cp\|v$. So
+\[
+Ph=Uw+\|\cp\|\,v=V\begin{bmatrix}w\\ \|\cp\|\end{bmatrix},\qquad \|Ph\|^2=\|w\|^2+\|\cp\|^2,
+\]
+using $V^\top V=I$. Therefore $\sigma(h)^2=(\|w\|^2+\|\cp\|^2)/H+\epsilon=(\|w\|^2+D^2)/H$, which is positive by assumption, and dividing gives (\ref{eq:red}).
+
+(iii) $\cp=0$ means $c=Pb\in\mathrm{range}(Q_E)=P\,\mathrm{range}(E)$. Since $b=Pb+\frac{\one^\top b}{H}\one$, this holds if and only if $b\in P\,\mathrm{range}(E)+\mathrm{span}(\one)=\mathrm{range}(E)+\mathrm{span}(\one)$ (the two sums agree because $Pe=e-\frac{\one^\top e}{H}\one$). The sum $\mathrm{range}(Q_E)\oplus\mathrm{span}(\one)$ is direct, so its dimension is $n+1$. It equals $\R^H$ exactly when $n=H-1$.
+
+(iv) With $\cp=0$, $Ph=Uw$, $\|Ph\|=\|w\|$ and $\sigma^2=(\|w\|^2+H\epsilon)/H$, which gives (\ref{eq:red0}) without using $v$. If $\epsilon=0$ as well, $\sigma=\|w\|/\sqrt H$ vanishes exactly when $w=0$, i.e.\ on $z^\star+\ker Q_E$.
+\end{proof}
+
+\begin{remark}[what the reduction says]
+LayerNorm composed with an affine map, a map from $\R^{n_z}$ into $\R^H$, depends on the input only through the $n$ numbers $w(z)$, and its values lie in a fixed $(n+1)$-dimensional subspace of $\one^\perp$, where they are given by one universal map $\phi$ with one parameter, $D$, once $H$ and $\epsilon$ are fixed. The weights enter in three places only: the rotation $V$ (where in $\R^H$ the image sits), the linear map $U^\top Q_E$ (how the input is measured, i.e.\ the shape of the kink ellipse), and the scalar $D$ (how sharp the kink is). The learned $\gamma,\beta$ and the branch act on $V\phi(w)$ and cannot change any of the three.
+\end{remark}
+
+\begin{remark}[relation to the reference derivation]
+For a sweep along one input ($n_z=1$, the reference's $x$ with $u$ held fixed) $Q_E=q$, $n=1$, $U=q/\|q\|$, $w=\|q\|\,s$, and (\ref{eq:red}) reads $\mathrm{LN}=\sqrt H\,(\hat q\,\|q\|s+\cp)/\sqrt{\|q\|^2s^2+D^2}$, which is the reference's equation (4.4) divided by its (4.5). The reference's centre (4.2), floor (4.5) and width (4.6) are the $n=1$ case of (i), $\delta$ and Corollary~\ref{cor:sv}. For the surrogates $n=n_z=2$: the input plane is mapped by the linear map $U^\top Q_E$ and then by $\phi$ onto a two-dimensional hemisphere (for $\epsilon>0$, onto a surface inside the ball that approaches the hemisphere far from $z^\star$).
+\end{remark}
+
+\begin{remark}[RMSNorm and post-norm]
+RMSNorm, $h/\sqrt{\|h\|^2/H+\epsilon}$, is the same computation with $P$ replaced by $I$: Theorem~\ref{thm:red} holds with $Q_E=E$, $c=b$, $n=\mathrm{rank}\,E\le\min(n_z,H)$, without the condition $\perp\one$, and with $n<H$ in place of $n<H-1$. So RMSNorm after an affine map has the same kink, with its own $z^\star$ and $D$; this is a prediction for the open RMSNorm item. Post-norm (the norm applied to $h+G(h)$) is not covered: its input is not affine in $z$.
+\end{remark}
+
+%=====================================================================
+\section{Corollaries of Theorem 1}\label{sec:cors}
+
+Throughout, $a=\|\cp\|$, so $D^2=a^2+H\epsilon$ and $a\le D$, with equality when $\epsilon=0$. Assume $D>0$ and $n\ge1$, write $\Delta=\rho^2+D^2$, and write $J_\phi(w)$ for the Jacobian of $\phi$.
+
+\begin{corollary}[inverse gnomonic projection]\label{cor:gnomonic}
+Let $\epsilon=0$, so $D=a>0$. Then $\phi(w)=\sqrt H\,y/\|y\|$ with $y=(w,D)\in\R^{n+1}$: $\phi$ projects the hyperplane $\{y_{n+1}=D\}$ centrally from the origin onto the sphere of radius $\sqrt H$. It is a smooth bijection of $\R^n$ onto the open upper hemisphere $\{y:\ \|y\|=\sqrt H,\ y_{n+1}>0\}$, with inverse $w=D\,y_{1:n}/y_{n+1}$ (the gnomonic projection). The equator $y_{n+1}=0$ is approached only as $\rho\to\infty$. For $\epsilon>0$, $\|\phi(w)\|=\sqrt H\sqrt{(\rho^2+a^2)/(\rho^2+D^2)}<\sqrt H$ and $\|\phi(w)\|\to\sqrt H$ as $\rho\to\infty$.
+\end{corollary}
+
+\begin{proof}
+With $\epsilon=0$, $\sqrt{\|w\|^2+D^2}=\|y\|$, which gives the formula. The central projection of a hyperplane at height $D>0$ onto the sphere hits each ray with positive last coordinate once; the inverse follows by solving $y=\sqrt H(w,D)/\|(w,D)\|$ for $w$. The norm for $\epsilon>0$ is read off (\ref{eq:red}).
+\end{proof}
+
+So LayerNorm after an affine map is the classical map-maker's projection run backwards: the input plane is the flat map, the normalised features are the globe, and the kink centre $z^\star$ is the point where the map touches the globe. Near that point the map is nearly undistorted at scale $\sqrt H/D$; far from it, equal steps on the map shrink to ever smaller steps on the globe.
+
+\begin{corollary}[singular values: peak, width and petals]\label{cor:sv}
+At $w$ with $\rho=\|w\|>0$ the Jacobian $J_\phi(w)\in\R^{(n+1)\times n}$ has the singular values
+\begin{equation}
+\begin{aligned}
+\sigma_{\mathrm{tan}}(\rho)&=\frac{\sqrt H}{\sqrt{\Delta}}&&\text{(multiplicity } n-1\text{, directions }t\perp w),\\
+\sigma_{\mathrm{rad}}(\rho)&=\frac{\sqrt H\,\sqrt{D^4+a^2\rho^2}}{\Delta^{3/2}}&&\text{(direction }w/\rho),
+\end{aligned}
+\label{eq:sv}
+\end{equation}
+and at $w=0$ all $n$ singular values equal $\sqrt H/D$. For $\epsilon=0$, $\sigma_{\mathrm{rad}}=\sqrt H\,D/(\rho^2+D^2)$. Consequently:
+\begin{enumerate}
+\item[(a)] Peak. $\sup_w\|J_\phi(w)\|=\sqrt H/D$, attained only at $w=0$, i.e.\ at the centre $z^\star$ (along $z^\star+\ker Q_E$ if $n<n_z$).
+\item[(b)] Width. $\sigma_{\mathrm{tan}}=\sqrt H/(\sqrt2\,D)$ on the set $\rho=D$, i.e.\ $\|Q_E s\|=D$ (an ellipse when $n=n_z=2$, as for the surrogates); along the coordinate axes through $z^\star$ its half-widths are $r^*_x=D/\|q_x\|$ and $r^*_u=D/\|q_u\|$. For $\epsilon=0$ and $n=1$ the half-width at half maximum of $\sigma_{\mathrm{rad}}$ is exactly $\rho=D$ (the reference's Proposition 1).
+\item[(c)] Far field. For $\rho\ge D$,
+\begin{equation}
+\frac{\sqrt{H/2}}{\rho}\le\sigma_{\mathrm{tan}}(\rho)\le\frac{\sqrt H}{\rho},\qquad \sigma_{\mathrm{rad}}(\rho)\le\frac{2\sqrt H\,D}{\rho^2}.
+\end{equation}
+The normalised features turn with distance as $1/\rho$ across directions from $z^\star$ and as $1/\rho^2$ along them.
+\end{enumerate}
+\end{corollary}
+
+\begin{proof}
+Differentiating (\ref{eq:red}),
+\[
+J_\phi(w)=\sqrt H\Big(\frac{1}{\sqrt \Delta}\begin{bmatrix}I_n\\0\end{bmatrix}-\frac{1}{\Delta^{3/2}}\begin{bmatrix}w\\a\end{bmatrix}w^\top\Big).
+\]
+For $t\perp w$, $J_\phi(w)\,t=\sqrt H\,(t,0)/\sqrt \Delta$. For the unit radial vector $\hat w=w/\rho$,
+\[
+J_\phi(w)\,\hat w=\frac{\sqrt H}{\Delta^{3/2}}\Big(\Delta\begin{bmatrix}\hat w\\0\end{bmatrix}-\rho\begin{bmatrix}w\\a\end{bmatrix}\Big)=\frac{\sqrt H}{\Delta^{3/2}}\begin{bmatrix}D^2\,\hat w\\-a\rho\end{bmatrix}.
+\]
+The images of an orthonormal basis $\{t_1,\dots,t_{n-1},\hat w\}$ are mutually orthogonal (the radial image has inner product $D^2\hat w^\top t_i=0$ with each tangential image), so their norms are the singular values, which gives (\ref{eq:sv}). At $w=0$, $J_\phi=\sqrt H\,[I_n;0]/D$. For $\epsilon=0$, $\sqrt{D^4+D^2\rho^2}=D\sqrt \Delta$.
+
+(a) $\sigma_{\mathrm{tan}}$ is decreasing in $\rho$. For $\sigma_{\mathrm{rad}}$, $\frac{d}{d\rho^2}\log\sigma_{\mathrm{rad}}^2=\frac{a^2}{D^4+a^2\rho^2}-\frac{3}{\Delta}$, which is negative because $a^2\Delta=a^2\rho^2+a^2D^2<3a^2\rho^2+3D^4$ (use $a\le D$). Both are therefore maximal at $\rho=0$, with value $\sqrt H/D$.
+
+(b) $\sigma_{\mathrm{tan}}(D)=\sqrt H/\sqrt{2D^2}$. On the axis through $z^\star$ along $x$, $s=(s_x,0)$ and $\rho=\|q_x\|\,|s_x|$, so $\rho=D$ at $|s_x|=D/\|q_x\|$; likewise for $u$. For $n=1$, $\epsilon=0$: $\sigma_{\mathrm{rad}}=\frac{\sqrt H}{D}\cdot\frac{D^2}{\rho^2+D^2}$ is half its peak at $\rho=D$.
+
+(c) For $\rho\ge D$, $\rho^2\le \Delta\le2\rho^2$ gives the bounds on $\sigma_{\mathrm{tan}}$. For $\sigma_{\mathrm{rad}}$, $\sqrt{D^4+a^2\rho^2}\le D^2+a\rho\le D^2+D\rho\le2D\rho$ and $\Delta^{3/2}\ge\rho^3$.
+\end{proof}
+
+The companion's kink ellipse $\mathcal K=\{z:\ \|Q_Es\|\le D\}$ is therefore the set where the largest feature gain ($\sigma_{\mathrm{tan}}$, for $n\ge2$) is within a factor $\sqrt2$ of its peak; on its boundary the radial gain has fallen to between $0.35$ and $0.5$ of the peak ($\sqrt{D^2+a^2}/(2\sqrt2D)$, exactly $0.5$ for $\epsilon=0$). Part (c) is the rigorous form of the petal statement: across directions from the centre the gain decays as $1/\rho$, along them as $1/\rho^2$. Along any straight line the motion eventually becomes radial, which is the $s^{-2}$ tail of the reference's one-dimensional sweep; the $1/\rho$ term is seen only in derivatives taken across the line, for example $\Ju$ at points that lie in the $x$-direction from $z^\star$.
+
+\begin{corollary}[the image is the same for every $D$: bounded values, unbounded slope]\label{cor:area}
+Let $\epsilon=0$. The $n$-dimensional volume of the image of $\phi$, counted with the area element $\det(J_\phi^\top J_\phi)^{1/2}=\sigma_{\mathrm{tan}}^{\,n-1}\sigma_{\mathrm{rad}}$, is
+\begin{equation}
+\int_{\R^n}\frac{H^{n/2}\,D}{(\rho^2+D^2)^{(n+1)/2}}\,dw=\tfrac12 H^{n/2}\,|S^n|,\qquad |S^n|=\frac{2\pi^{(n+1)/2}}{\Gamma\big(\frac{n+1}{2}\big)},
+\label{eq:area}
+\end{equation}
+independent of $D$: $\pi\sqrt H$ for $n=1$ (the reference's Proposition 3) and $2\pi H$ for $n=2$. For every $\epsilon\ge0$, $\|\phi\|\le\sqrt H$ while the peak gain is $\sqrt H/D$. Consequently, for any readout $g:\R^{n+1}\to\R$ that is $C^1$ and $L_g$-Lipschitz on the ball of radius $\sqrt H$:
+\begin{enumerate}
+\item[(a)] the values of $g\circ\phi$ range over an interval of length at most $2\sqrt H\,L_g$, whatever $D$;
+\item[(b)] the slope at the centre is $\nabla(g\circ\phi)(0)=\frac{\sqrt H}{D}\,[\nabla g(\phi(0))]_{1:n}$, which grows as $1/D$ unless the first $n$ components of $\nabla g$ at the pole vanish;
+\item[(c)] the set where the feature gain $\|J_\phi\|$ is at least half its peak is contained in $\{\rho\le\sqrt3\,D\}$ (and equals it when $n\ge2$), whose input-space volume is $\omega_n(\sqrt3D)^n/\sqrt{\det(Q_E^\top Q_E)}$ when $n=n_z$ ($\omega_n$ the volume of the unit $n$-ball); so a data distribution with density at most $p_{\max}$ puts mass at most $p_{\max}\omega_n(\sqrt3D)^n/\sqrt{\det Q_E^\top Q_E}$ there.
+\end{enumerate}
+As $D\to0$ the value of the network stays bounded and the fraction of training data in the kink vanishes like $D^n$, while the slope at the centre grows like $1/D$.
+\end{corollary}
+
+\begin{proof}
+By Corollary~\ref{cor:sv} the area element is $\sigma_{\mathrm{tan}}^{n-1}\sigma_{\mathrm{rad}}=H^{n/2}D/\Delta^{(n+1)/2}$. By Corollary~\ref{cor:gnomonic} $\phi$ is a bijection onto the open hemisphere, so the integral equals the hemisphere's volume, half that of the radius-$\sqrt H$ sphere, $\frac12 H^{n/2}|S^n|$; the substitution $w=Dv$ shows directly that $D$ drops out. (a) is the Lipschitz bound on a set of diameter $2\sqrt H$. (b) is the chain rule with $J_\phi(0)=\sqrt H[I_n;0]/D$. For (c), $\sigma_{\mathrm{rad}}\le\sqrt H/\sqrt\Delta$ because $D^4+a^2\rho^2\le\Delta^2$, so $\|J_\phi\|\le\sqrt H/\sqrt\Delta$ with equality ($=\sigma_{\mathrm{tan}}$) when $n\ge2$, and $\sqrt H/\sqrt\Delta\ge\frac12\sqrt H/D$ if and only if $\rho^2\le3D^2$; the preimage of the ball $\{\|w\|\le r\}$ under $z\mapsto U^\top Q_E(z-z^\star)$ is an ellipsoid of volume $\omega_nr^n/\sqrt{\det(Q_E^\top Q_E)}$.
+\end{proof}
+
+This is the formal reason a value loss does not see the kink: shrinking $D$ redistributes a fixed total turning of the features (a fixed hemisphere) into a smaller region of input space, so the outputs stay bounded and the data inside the kink vanish as $D^n$, while the slope grows as $1/D$. The same $D^n$ scaling underlies the companion's count of training points inside the kink ellipse $\rho\le D$ for the ten LN MSE 3000 surrogates ($n=2$, 20\,000 uniform points on $[-4,4]\times[-10,10]$): 2 to 246 points, the fewest on the narrowest kinks.
+
+\begin{corollary}[the block Jacobian factors through the image of $\phi$]\label{cor:block}
+For the pre-norm block $\hat F(z)=w_d^\top\big(h+G(\gamma\odot\mathrm{LN}(h)+\beta)\big)+b_d$, $h=Ez+b$,
+\begin{equation}
+\hat F(z)=w_d^\top(Ez+b)+b_d+\mathcal G\big(\phi(w(z))\big),\qquad \mathcal G(y)=w_d^\top G(\gamma\odot Vy+\beta),
+\label{eq:Fdec}
+\end{equation}
+\begin{equation}
+\nabla_z\hat F(z)^\top=w_d^\top E+w_d^\top J_G\,\mathrm{diag}(\gamma)\,V\,J_\phi(w)\,U^\top Q_E,
+\label{eq:jac}
+\end{equation}
+with $J_G$ the branch Jacobian at $\gamma\odot V\phi(w)+\beta$. The first term is the constant skip slope; all spatial structure of the slope field comes from $J_\phi(w)$, a universal function of $w$ and $D$, and from $J_G$ evaluated on the image of $\phi$ (the hemisphere when $\epsilon=0$). As $\rho\to\infty$ along a fixed direction $\hat w$, $\phi(w)\to\sqrt H(\hat w,0)$ and the branch tends to the far-field branch function $\Phi(\hat w)=\mathcal G(\sqrt H(\hat w,0))$, a function of direction only; its gradient across directions is $\Phi'/\rho$ to leading order and along directions $O(1/\rho^2)$.
+\end{corollary}
+
+\begin{proof}
+(\ref{eq:Fdec}) is Theorem~\ref{thm:red} substituted into the block. Differentiate with $\partial w/\partial z=U^\top Q_E$. The far-field statements follow from Corollary~\ref{cor:sv}(c) and the smoothness of $\mathcal G$ on the closed ball of radius $\sqrt H$.
+\end{proof}
+
+For $n=2$, $\hat w=(\cos\vartheta,\sin\vartheta)$ in the coordinates of $U$, and $\Phi$ is the companion's $\Phi(\theta)$ up to the reparametrisation of the angle induced by $U^\top Q_E$ (a diffeomorphism of the circle, linear only when $U^\top Q_E$ is a multiple of an orthogonal matrix). The sign changes of $\Phi'$ around the circle are the petals; whether a petal of negative $\hat J_u$ (a wrong-sign arm) crosses a given path is decided by $\Phi$ and the orientation of $U^\top Q_E$, not by $D$. This is the geometric input to Theorem 2.
+
+\begin{corollary}[$\epsilon$ is irrelevant once the bias has moved]\label{cor:eps}
+$D^2=\|\cp\|^2+H\epsilon$ with $\cp=0$ only on the $(n+1)$-dimensional subspace $\mathrm{range}(E)+\mathrm{span}(\one)$ of biases (Theorem~\ref{thm:red}(iii)). If $n<H-1$ and $b$ has any distribution with a density, $\cp\ne0$ almost surely. With the encoder bias initialised at zero, as in this project's code (level1\_core.init\_params; PyTorch's default initialisation is not zero), the initial bias lies in that subspace: at initialisation $c=0$, $z^\star=0$, $\cp=0$ and $D=\sqrt{H\epsilon}$, the $\epsilon$-dominated case. After training, $\epsilon$ changes $D$ by the relative amount $\sqrt{1+H\epsilon/\|\cp\|^2}-1\le H\epsilon/(2\|\cp\|^2)$.
+\end{corollary}
+
+\begin{proof}
+A proper subspace has Lebesgue measure zero. The rest is substitution and $\sqrt{1+t}\le1+t/2$.
+\end{proof}
+
+For the LN MSE 3000 surrogates $D=0.132$ to $0.901$ against $\sqrt{H\epsilon}=0.004$, so $\epsilon$ changes $D$ by at most $0.05$ percent (seed 2). Their centres stay within $0.1$ of the origin, but Corollary~\ref{cor:eps} does not explain that: $z^\star=-Q_E^+Pb$ is linear in $b$ and moves with the component $\Pi c$ of the centred bias along $\mathrm{range}(Q_E)$, while $\|\cp\|$ grows with the orthogonal component (for $b=Et+\alpha\one$, $\cp=0$ but $z^\star=-t$). It is an observation about the trained biases: $\|\Pi c\|=0.03$ to $0.12$ against $\|\cp\|=0.13$ to $0.90$. Two consequences for experiments: an $\epsilon$ sweep on a trained network does not test the mechanism, and an experiment run with the encoder bias switched off is in the degenerate case $D=\sqrt{H\epsilon}$, which no trained network occupies.
+
+\subsection{Numerical verification}\label{sec:verify1}
+
+Script verify\_thm1.py (float64). Every check passes.
+\begin{center}
+\small
+\begin{tabular}{p{7.2cm}p{7.3cm}}
+\toprule
+Check & Result \\
+\midrule
+(\ref{eq:red}) for random $E,b$: $n_z=2$ full rank; $n_z=5$ with rank 3; $n_z=15$ and $20$ ($n=H-1$); $\epsilon\in\{0,10^{-6},10^{-2}\}$; bias random or in $\mathrm{range}(E)+\mathrm{span}(\one)$; 200 random $z$ each & max error $\le8\times10^{-15}$; $V^\top V=I$ and $V^\top\one=0$ to $10^{-14}$; for $n=H-1$, $\|\cp\|=0$ for every bias, as (iii) states \\
+Singular values (\ref{eq:sv}), $n=4$, $\epsilon\in\{0,10^{-6},10^{-2},0.5\}$, $\|\cp\|\in\{0,0.3,2\}$, $\rho$ from $0$ to $10^3$ & max relative error $1.7\times10^{-6}$ (limited by the SVD at $\rho=10^3$) \\
+(\ref{eq:area}) for $D\in\{10^{-3},0.13,0.9,7\}$ & $\pi\sqrt H=12.5663706144$ and $2\pi H=100.53096491$ to all printed digits for every $D$; peak gain $\sqrt H/D$ from 0.57 to 4000 \\
+Image at $\epsilon=0$ & $|\,\|\phi\|-\sqrt H\,|\le9\times10^{-16}$, last coordinate $>0$; inverse gnomonic map exact to $4\times10^{-16}$ \\
+(\ref{eq:jac}) for a random pre-norm block with GELU branch & agrees with central differences to $10^{-9}$ (relative) \\
+Corollary~\ref{cor:eps} & $b=0$ and $b=Et+2.5\,\one$ give $\|\cp\|=0$, $D=0.0040$; random $b$ gives $\|\cp\|=3.0$ \\
+The ten trained LN MSE 3000 surrogates: $\hat F$ computed through (\ref{eq:Fdec}) & equals F\_point to $2\times10^{-15}$; $z^\star$, $r^*_x$, $r^*_u$ equal the saved values to three digits \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\section{Theorem 2: the closed-loop multiplier}\label{sec:thm2}
+
+\subsection{Setting}
+A scalar surrogate $x_{k+1}=\hat F(x_k,u_k)$, $\hat F\in C^1$, is controlled by a policy $u_k=\pi_\theta(x_k)$ that is $C^1$ in $x$ and $\theta$ (memoryless; recurrent policies are treated in Remark~\ref{rem:rnn}). From a start $x_0$ the rollout has length $N$ and per-start DPC loss
+\begin{equation}
+\ell(\theta;x_0)=\frac1N\Big[\sum_{k=0}^{N-1}\big(Qx_k^2+Ru_k^2\big)+Q_fx_N^2\Big],\qquad L(\theta)=\frac1M\sum_{i=1}^M\ell(\theta;x_0^{(i)}),
+\end{equation}
+with $Q=5$, $R=0.1$, $Q_f=50$, $N=200$, $M=1000$ in the experiments. Along the rollout write $\Jx(k)=\partial_x\hat F(x_k,u_k)$, $\Ju(k)=\partial_u\hat F(x_k,u_k)$ and $K_k=-\partial_x\pi_\theta(x_k)$, and define
+\begin{equation}
+m_k=\Jx(k)-\Ju(k)\,K_k\quad\text{(closed-loop multiplier)},\qquad \Psi_{k,j}=\prod_{i=j}^{k-1}m_i\quad(\Psi_{j,j}=1),
+\end{equation}
+the costate $p_k=\partial\ell/\partial x_k$ (the derivative of $\ell$ with respect to $x_k$ with the rest of the rollout regarded as a function of $x_k$) and the sources
+\begin{equation}
+\chi_k=\frac2N\big(Qx_k-Ru_kK_k\big)\quad(k<N),\qquad \chi_N=\frac2N\,Q_fx_N .
+\end{equation}
+For the true plant $m_k=A-BK_k$; at the LQR gain $K^\star=10.2875$ this is $0.927$, and the closed loop contracts.
+
+\begin{definition}[landing window and landing amplification]
+The landing window of a start is $W(x_0)=\{k_{\mathrm{land}},\dots,N-1\}$ with $k_{\mathrm{land}}=\min\{k:\ |x_k|\le0.2\}$; if $|x_k|>0.2$ for every $k<N$ the window is empty. Its landing amplification is the largest log-gain of any segment of the window,
+\begin{equation}
+\Lambda(x_0)=\max_{k_{\mathrm{land}}\le k_1\le k_2\le N}\ \sum_{i=k_1}^{k_2-1}\log|m_i|\ \ \ \ge0
+\end{equation}
+($\Lambda=0$ for an empty window), and for a run (a surrogate, a policy and its training starts) $\Lambda^\star=\max_i\Lambda(x_0^{(i)})$. Equivalently $e^{\Lambda(x_0)}$ is the largest transition gain $|\Psi_{k_2,k_1}|$ inside the window. $\Lambda_{\mathrm{all}}$ denotes the same maximum over all segments of the whole rollout ($k_{\mathrm{land}}$ replaced by 0).
+\end{definition}
+
+\begin{theorem}[closed-loop multiplier condition]\label{thm:mult}
+In the setting above:
+\begin{enumerate}
+\item[(a)] Factorisation. $\partial x_k/\partial x_j=\Psi_{k,j}$, so the finite-horizon Lyapunov exponent is
+\[
+\lambda_N(x_0)=\frac1N\log\Big|\frac{\partial x_N}{\partial x_0}\Big|=\frac1N\sum_{k=0}^{N-1}\log|m_k|,
+\]
+and
+\begin{equation}
+p_j=\sum_{k=j}^{N}\Psi_{k,j}\,\chi_k,\qquad
+\nabla_\theta\ell=\sum_{j=0}^{N-1}\Big(\frac{2R}{N}u_j+\Ju(j)\,p_{j+1}\Big)\nabla_\theta\pi_\theta(x_j).
+\label{eq:costate}
+\end{equation}
+\item[(b)] Stability band. If $K_k>0$,
+\begin{equation}
+m_k>1\iff\Ju(k)<\frac{\Jx(k)-1}{K_k},\qquad m_k<-1\iff\Ju(k)>\frac{\Jx(k)+1}{K_k}.
+\label{eq:band}
+\end{equation}
+With $\Jx=A=1.03$ and $K_k=K^\star$ the band of non-expanding input slopes is $[0.29\,B,\ 19.7\,B]$. Whenever $\Jx\ge1$ every wrong-sign $\Ju$ lies below the band; the lower edge is very sensitive to $\Jx$ ($\Jx=1$ moves it from $0.29\,B$ to $0$, and $\Jx<1$ makes it negative).
+\item[(c)] No expanding segment, no exponential factor. With $\Psi^{\max}=\max_{0\le j\le k\le N}|\Psi_{k,j}|=e^{\Lambda_{\mathrm{all}}}$, $|p_j|\le\Psi^{\max}\sum_{k\ge j}|\chi_k|$ and
+\begin{equation}
+\|\nabla_\theta\ell\|\le\sum_{j=0}^{N-1}\|\nabla_\theta\pi_\theta(x_j)\|\Big(\frac{2R}{N}|u_j|+|\Ju(j)|\,\Psi^{\max}\sum_{k}|\chi_k|\Big).
+\end{equation}
+The right side is $e^{\Lambda_{\mathrm{all}}}$ times a factor set by the size of the rollout: a polynomial in $N$ and in the maxima of $|x_k|$, $|u_k|$, $|K_k|$, $|\Ju|$ and $\|\nabla_\theta\pi_\theta\|$ along it. If no segment expands ($\Lambda_{\mathrm{all}}=0$) there is no exponential factor. (Whether the rollout itself stays bounded is a separate matter; $m_k=1$ allows drift.)
+\item[(d)] A uniformly expanding segment forces exponential costates. Suppose that for some $k_1<k_2\le N$ and constants $\tau>0$, $\kappa\ge0$,
+\begin{equation}
+\sum_{i=k}^{k_2-1}\log|m_i|\ \ge\ \tau(k_2-k)-\kappa\qquad\text{for every }k\in\{k_1,\dots,k_2-1\},
+\label{eq:unif}
+\end{equation}
+and that $|p_{k_2}|\ge2\bar\chi\,e^{\kappa}/(1-e^{-\tau})$ with $\bar\chi=\max_{k_1\le k<k_2}|\chi_k|$. Then
+\begin{equation}
+|p_{k_1}|\ \ge\ \tfrac12\,|p_{k_2}|\,e^{\tau(k_2-k_1)-\kappa}.
+\label{eq:lower}
+\end{equation}
+\item[(e)] The segment that defines $\Lambda$. Let $[k_1,k_2)$ be a segment of largest log-gain $\Lambda$ among the segments of an interval of steps (for example the landing window). Then
+\begin{equation}
+|p_{k_1}|\ \ge\ e^{\Lambda}\Big(|p_{k_2}|-\sum_{k=k_1}^{k_2-1}|\chi_k|\Big).
+\label{eq:lowerL}
+\end{equation}
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+(a) $x_{k+1}=\hat F(x_k,\pi_\theta(x_k))$ has derivative $\Jx(k)+\Ju(k)\partial_x\pi_\theta(x_k)=m_k$ with respect to $x_k$; the chain rule gives $\partial x_k/\partial x_j=\Psi_{k,j}$ and the formula for $\lambda_N$. The loss depends on $x_k$ directly through the stage term $\frac1N(Qx_k^2+Ru_k^2)$, whose derivative is $\chi_k$ (using $\partial u_k/\partial x_k=-K_k$), and through $x_{k+1}$, so $p_k=\chi_k+m_kp_{k+1}$, $p_N=\chi_N$; unrolling gives (\ref{eq:costate}). The parameters enter each step through $u_j$; a change of $u_j$ changes the stage term by $\frac{2R}{N}u_j$ and $x_{j+1}$ by $\Ju(j)$, which is then worth $p_{j+1}$. Summing over $j$ gives the gradient.
+
+(b) Since $K_k>0$, $m_k>1\iff\Ju K_k<\Jx-1$, and $m_k<-1\iff\Ju K_k>\Jx+1$. With $\Jx=1.03$, $K^\star=10.2875$, $B=0.01$: $0.03/K^\star=0.29\,B$ and $2.03/K^\star=19.7\,B$. If $\Jx\ge1$ the lower edge is $\ge0$, so every $\Ju<0$ lies below it.
+
+(c) Bound each term of (\ref{eq:costate}) by its absolute value and $|\Psi_{k,j}|\le\Psi^{\max}$. The sum $\sum_k|\chi_k|$ is bounded by $\frac2N\sum_k(Q|x_k|+R|u_k||K_k|)+\frac2NQ_f|x_N|$, i.e.\ by the size of the rollout, not by any product of multipliers.
+
+(d) From $p_k=\chi_k+m_kp_{k+1}$, $p_{k_1}=\Psi_{k_2,k_1}p_{k_2}+\sum_{k=k_1}^{k_2-1}\Psi_{k,k_1}\chi_k$. Since $\Psi_{k,k_1}=\Psi_{k_2,k_1}/\Psi_{k_2,k}$,
+\[
+|p_{k_1}|\ge|\Psi_{k_2,k_1}|\Big(|p_{k_2}|-\sum_{k=k_1}^{k_2-1}\frac{|\chi_k|}{|\Psi_{k_2,k}|}\Big).
+\]
+By (\ref{eq:unif}), $|\Psi_{k_2,k}|\ge e^{\tau(k_2-k)-\kappa}$, so the sum is at most $\bar\chi e^{\kappa}\sum_{l\ge1}e^{-\tau l}\le\bar\chi e^\kappa/(1-e^{-\tau})\le\frac12|p_{k_2}|$, and $|\Psi_{k_2,k_1}|\ge e^{\tau(k_2-k_1)-\kappa}$.
+
+(e) Every suffix $[k,k_2)$ of a maximal segment has non-negative log-gain (otherwise dropping it would increase the gain), so every prefix has log-gain at most $\Lambda$: $|\Psi_{k,k_1}|\le e^{\Lambda}$ for $k_1\le k<k_2$. With $|\Psi_{k_2,k_1}|=e^{\Lambda}$, the expansion in (d) gives $|p_{k_1}|\ge e^{\Lambda}|p_{k_2}|-e^{\Lambda}\sum_{k=k_1}^{k_2-1}|\chi_k|$.
+\end{proof}
+
+\begin{remark}[reading the theorem]
+Part (a) says the training gradient is a fixed linear image of the costate sequence, and the costate is a sum of multiplier products: the gradient can be large only through products of $m_k$. Part (c) is the converse safety statement: if no stretch of the rollout expands, the gradient carries no exponential factor. Parts (d) and (e) are sufficient conditions for exponential costates, and (e) ties them to the measured $\Lambda$: the segment achieving $\Lambda$ amplifies the costate at its end by $e^{\Lambda}$, unless the sources $\chi_k$ inside the segment cancel it. Their hypotheses (the end costate dominates the sources) are not what we verify on the data; we verify the conclusion they protect: on the 17 trapped runs that the test flags, the largest costate of the scalar recursion is within a factor 18 to 3000 of $e^{\Lambda^\star}$, against amplifications of $e^{17}$ to $e^{158}$ (Section~\ref{sec:test}). The gradient is the image of the costates under the policy's parameter sensitivities $\nabla_\theta\pi_\theta(x_j)$; a cancellation that removed an amplification of $e^{\Lambda}$ would have to hold to relative precision $e^{-\Lambda}$. Part (b) translates expansion into a statement about the surrogate's slopes at the points the policy visits, which Theorem~\ref{thm:red} (Corollaries~\ref{cor:sv} and~\ref{cor:block}) locates.
+\end{remark}
+
+\begin{corollary}[trap condition, the form that is tested]\label{cor:trap}
+Let $\pi$ be a policy (in the application, the good policy, which stabilises the true plant; the proof does not use this) and let $[k_1,k_2)$ be a segment of its landing path through the surrogate. Then:
+\begin{enumerate}
+\item[(i)] if $[k_1,k_2)$ is the segment achieving $\Lambda(x_0)$, the costate at its start is at least $e^{\Lambda(x_0)}\big(|p_{k_2}|-\sum_{k_1\le k<k_2}|\chi_k|\big)$, by (e); if instead it satisfies the hypotheses of (d), the costate at its start is at least $\frac12|p_{k_2}|e^{\tau(k_2-k_1)-\kappa}$;
+\item[(ii)] every expanding step of the segment has $\Ju(k)K_k\notin[\Jx(k)-1,\Jx(k)+1]$. By Corollary~\ref{cor:block} the slopes differ from the constant skip slope $w_d^\top E$ only through the branch term, which by Corollaries~\ref{cor:sv} and~\ref{cor:block} is largest in the kink and decays algebraically along its petals. So if the skip slope lies in the band (as it does when it is close to $(A,B)$), the expanding steps lie in the kink or its arms; with $\Jx\approx A$ and $K_k=K^\star$ they have $\Ju/B$ below about $0.29$ (small or wrong sign) or above about $19.7$ (near the peak);
+\item[(iii)] if, in addition, the landed orbit keeps expanding at a positive average rate $\tau$ (a positive Lyapunov exponent of the landed orbit through the surrogate, an assumption), then $\Lambda$ grows like $\tau(N-k_{\mathrm{land}})$, linearly with the horizon.
+\end{enumerate}
+\end{corollary}
+
+Part (iii) is consistent with the horizon dependence seen in training (the traps appeared at horizons 100 to 200). Part (ii) is the orientation statement: peak height is necessary but not sufficient; the arms must cut the path on which the good policy lands. The corollary is a sufficient condition for the gradient pathology at the good policy. That gradient descent then fails, i.e.\ the trap itself, also needs somewhere tame to go: a flexible policy can settle where the gradients are honest (just outside the arms), while the two-parameter linear policy of the architecture study has no such place and was not trapped in the smoke test.
+
+\begin{remark}[recurrent policies]\label{rem:rnn}
+For a policy with memory, $\eta_k=g(x_k,\eta_{k-1})$, $u_k=\pi(\eta_k)$ (the GRU), the closed loop acts on $\xi_k=(x_k,\eta_{k-1})$ with Jacobian
+\[
+M_k=\begin{bmatrix} m_k & \Ju(k)\,\pi'(\eta_k)\,\partial_\eta g\\ \partial_x g & \partial_\eta g\end{bmatrix},\qquad m_k=\Jx(k)-\Ju(k)K_k,\quad K_k=-\pi'(\eta_k)\,\partial_xg,
+\]
+where $K_k$ is the policy's direct gain (the response of $u_k$ to $x_k$ at fixed memory). Parts (a) and (c) of Theorem~\ref{thm:mult} hold for the augmented costate, with the matrix products $M_{k-1}\cdots M_j$ in place of $\Psi_{k,j}$ and operator norms in (c); since $\theta$ also enters the memory update $g$, the gradient formula in (a) becomes $\nabla_\theta\ell=\sum_j(\partial\xi_{j+1}/\partial\theta)^\top\bar p_{j+1}$ plus the stage terms, with $\bar p$ the augmented costate. Parts (b), (d) and (e) are scalar statements: (d) and (e) divide transition products, which for matrices needs an alignment hypothesis on the costate. The scalar $m_k$ is the state-to-state entry of $M_k$. Every entry of the first row of $M_k$ that involves the plant's input slope carries the factor $\Ju(k)$, so replacing $\Ju$ by $B$ changes the whole row consistently (this is the swap test). For a GRU the scalar product $\prod m_k$ is not the exact $\partial x_N/\partial x_0$: the memory adds a slow mode. For the GRU runs we therefore use $\Lambda^\star$ with the direct gain as a statistic suggested by the theorem, not as a consequence of it, and Section~\ref{sec:test} reports both it and the exact quantities.
+\end{remark}
+
+\subsection{Relation to the literature}
+That gradients through long rollouts or recurrences grow like the product of Jacobians, i.e.\ like $e^{N\lambda}$, is classical for recurrent networks (Bengio, Simard and Frasconi 1994; Pascanu, Mikolov and Bengio 2013) and for policy optimisation through learned or simulated dynamics, where chaotic rollouts make reparameterisation gradients explode and lose direction (Parmas, Rasmussen, Peters and Doya 2018; Metz, Freeman, Schoenholz and Kachman 2021; Suh, Simchowitz, Zhang and Tedrake 2022). Theorem~\ref{thm:mult} is that mechanism specialised to a scalar closed loop, with two additions: the expansion is localised to where the surrogate's input slope leaves an explicit band (\ref{eq:band}), and Theorem~\ref{thm:red} locates those places from the first-layer weights. The new element is the chain from LayerNorm geometry to the closed-loop multiplier, not exploding gradients as such. On the LayerNorm side, the projection onto $\one^\perp$ followed by scaling to a sphere is in Brody, Alon and Yahav (2023), the decomposition into projection, ball and ellipsoid in Riechers (2024), and the $1/\|h\|$ growth of LayerNorm's gradient in Xu et al.\ (2019); none of them composes LayerNorm with the affine map in front or derives the reduction (\ref{eq:red}) and its singular values.
+
+%=====================================================================
+\section{Test of Theorem 2 on the saved runs}\label{sec:test}
+
+\subsection{Protocol}
+Runs. The saved regulation DPC study: six surrogate families $\times$ ten seeds $\times$ three repeats = 180 runs (GRU controllers, horizon curriculum to $N=200$, AdamW). Labels come from the results file: a run failed if its typical-start cost gap on the true plant exceeds 10 percent, and it is trapped if it failed and DPC's own controller costs more than $1.05$ times the reference controller on the same surrogate (the optimisation-trap diagnostic of the project notes). LN MSE 3000 has 13 failed and 12 trapped runs (seeds 1, 2, 8, 9 in every repeat; seed 5 of repeat 0 failed by model mismatch, ratio 0.99); LN slope from step 0 has 8 trapped runs; the other four families have none.
+
+Good policy. For each run, the GRU reference controller of the same repeat (trained through the true plant) is rolled out through the run's surrogate from that repeat's 1000 training starts for 200 steps. Nothing else is used: no DPC training and no trained DPC controller. Along every rollout the script computes $\Jx$, $\Ju$, the GRU's direct gain $K_k$ (Remark~\ref{rem:rnn}), $m_k$, the landing window ($|x_k|\le0.2$ onwards), $\Lambda(x_0)$, $\Lambda^\star$ and, over the whole rollout, $\Lambda_{\mathrm{all}}$. Also recorded: the exact sensitivity $\partial x_N/\partial x_0$ through the full GRU by forward-mode differentiation, the norm of the batch gradient of the surrogate DPC loss at the reference controller, the same at 8 neighbours whose weights are multiplied by $1+10^{-3}\xi$, $\xi\sim\mathcal N(0,1)$ (about one AdamW step), and $\Lambda^\star$ recomputed along the same paths with $\Ju$ replaced by $B$ or $\Jx$ by $A$.
+
+Memoryless control. The same quantities for the memoryless policy $u=10\tanh(-K^\star x/10)$ at the LQR gain $K^\star=10.2875$ (the 'linear' controller of the architecture study at its optimum), for which Theorem~\ref{thm:mult}(a) is exact.
+
+Threshold. $\Lambda_c=12.1$, the geometric midpoint of the gap between the trapped and the other LN MSE 3000 runs ($8.6$ and $17.0$). It was chosen after seeing those 30 runs and then applied unchanged to the other 150.
+
+Reproduction: t2core.py (surrogate, GRU, loss), t2\_test.py (all GRU quantities), t2\_memoryless.py (memoryless policy, neighbourhoods), t2\_swap.py, make\_t2\_tables.py, make\_t2\_fig.py; surrogates and controllers from MyDrive/dpc\_out. The scripts reproduce the saved kink geometry to three digits and the saved surrogate costs to four (seed 9, repeat 0: 1860.88). Gradient norms at the reference agree with the notes in order of magnitude only (seed 2: $3.9\times10^{35}$ here, $1.1\times10^{35}$ in the notes); the exact value depends on the order of floating-point accumulation, itself a symptom of the chaos.
+
+\subsection{Results}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{t1_theorem2_test.png}
+\caption{Theorem 2 tested on the saved runs. Left: landing amplification $\Lambda^\star$ of the GRU reference controller through each surrogate, all 180 runs (symlog axis); filled dark red = trapped, grey square = failed by model mismatch, open blue = not failed. Dashed: the threshold $12.1$ fixed on LN MSE 3000; grey band: the gap between its trapped and other runs. Middle: LN MSE 3000, norm of the surrogate DPC gradient at the reference controller (circles) and the largest over 8 neighbours at relative distance $10^{-3}$ (triangles), against $\Lambda^\star$; dashed $e^{\Lambda^\star}$. Right: $\Lambda^\star$ of the memoryless LQR-gain policy against that of the GRU reference, same surrogates and starts.}
+\label{fig:t2}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lccccccccc}
+\toprule
+ & & & \multicolumn{3}{c}{$\Lambda^\star>12.1$} & max $\Lambda^\star$ & \multicolumn{2}{c}{$\|\nabla L\|>10^3$ at ref.} & max $\Lambda^\star$ \\
+\cmidrule(lr){4-6}\cmidrule(lr){8-9}
+Family & failed & trapped & caught & missed & false & not trapped & caught & false & memoryless \\
+\midrule
+\rowsfrom{tab_families.tex}
+\bottomrule
+\end{tabular}
+\caption{All 180 runs. Caught / missed: trapped runs with $\Lambda^\star$ above / below the threshold; false: runs that are not trapped but above it. The last column is $\Lambda^\star$ of the memoryless LQR-gain policy (Section~\ref{sec:test}, protocol).}
+\label{tab:fam}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{rrrrlrrrrrrr}
+\toprule
+rep & seed & gap \% & own/ref & trapped & $\Lambda^\star$ & $\Ju{\to}B$ & $\Jx{\to}A$ & memoryless & $\|\nabla L\|$, ref. & neighbours & $\lambda_N$ exact \\
+\midrule
+\rowsfrom{tab_lnmse.tex}
+\bottomrule
+\end{tabular}
+\caption{LN MSE 3000, all 30 runs. own/ref: cost of DPC's controller over the reference controller's, both on the surrogate. $\Lambda^\star$ with the surrogate's slopes, then with $\Ju$ replaced by $B$ and with $\Jx$ replaced by $A$ along the same paths, then for the memoryless LQR-gain policy (``memoryless''); trapped ``mism.'': failed by model mismatch; gradient norm of the surrogate DPC loss at the reference controller and the largest at 8 neighbours (``neighbours''); largest exact finite-horizon Lyapunov exponent over the 1000 starts (augmented GRU loop).}
+\label{tab:lnmse}
+\end{table}
+
+\subsection{What the test shows}
+\begin{enumerate}
+\item The condition separates the trapped runs. On LN MSE 3000 the 12 trapped runs have $\Lambda^\star=17.0$ to $158$ and the other 18 at most $8.6$: complete separation, with a margin of a factor $e^{8.4}\approx4\times10^3$ in amplification. With the threshold fixed there and applied unchanged to the other 150 runs, nothing is flagged among the 120 runs of the four families without traps (largest $\Lambda^\star$ 3.8; 0 for the kink-free families, whose landing never expands), and 5 of the 8 slope-from-step-0 traps are flagged. Over all 180 runs: 17 of 20 traps flagged, 0 of 160 other runs.
+\item It is computed from the good policy alone, and it does better than the earlier diagnostics that also use only the good policy. A gradient above $10^3$ at the reference catches 14 of the 20 traps (it misses LN MSE repeat 2 seed 8, whose gradient there is 3.7, below the 106 of the untrapped repeat 1 seed 0). A positive exact Lyapunov exponent occurs on 16 trapped and 6 untrapped runs. The straight-line spike of the notes also separates all 30 LN MSE runs, but it needs the trapped DPC controller, i.e.\ a finished training run; $\Lambda^\star$ needs only the surrogate and a good policy, so it can be computed before training.
+\item The quantitative relation of Theorem~\ref{thm:mult}(c) holds on the data, with a constant below one. Part (c) uses $\Lambda_{\mathrm{all}}$, the largest segment gain of the whole rollout; it exceeds $\Lambda^\star$ by at most 3.3 (median 1.9), so the approach adds little, and on all 180 runs $\|\nabla L\|\le0.61\,e^{\Lambda_{\mathrm{all}}}$ at the reference controller. (For the GRU this is an observation, not a consequence of the theorem; Remark~\ref{rem:rnn}.) The bound is far from tight on several trapped runs (repeat 1 seed 2: $\Lambda^\star=158$, gradient $3\times10^7$) because the GRU's memory partly cancels the instantaneous expansion (point 7). The scalar costate realises the amplification: on the 17 flagged traps its maximum is within a factor 18 to 3000 of $e^{\Lambda^\star}$, so the sources do not cancel. On trapped runs one start carries a median 84 percent of $\|\nabla L\|^2$ (others: 0.2 percent), as the costate formula predicts when one landing orbit expands.
+\item The expansion is caused mainly by the input slope. Replacing $\Ju$ by $B$ along the same paths brings $\Lambda^\star$ below the threshold on 9 of the 12 trapped runs (to at most 5.7); replacing $\Jx$ by $A$ brings it below on none. The three exceptions are seed 9 (repeats 1 and 2) and seed 1 (repeat 2), where the state slope alone also expands ($m_k>1$ whenever $\Jx>1+BK_k\approx1.2$; seed 9 has a state-slope crest of $+0.71$), so both slopes must be right. This is the non-additivity already seen in the LQR swap test.
+\item Peak height does not decide; orientation does. Seed 1 of LN MSE 3000 (peak $|\Ju/B-1|=24.4$) is trapped in all three repeats, seed 7 (peak $23.1$) in none, with $\Lambda^\star=17$ to $35$ against $5.8$ to $7.3$. Seed 2 of LN MSE 12000 (peak $35.5$, the tallest survivor) has $\Lambda^\star\le2.5$ in every repeat. Where the good policy lands, the survivors' input slope stays inside the band (\ref{eq:band}).
+\item The condition depends on the policy, as Theorem~\ref{thm:mult} says it should. The memoryless policy at the LQR gain has $\Lambda^\star\le8.7$ on all 180 surrogate and start sets, including every trapped seed, and its factorisation is exact (sum of $\log|m_k|$ equals $\log|\partial x_N/\partial x_0|$ to $3\times10^{-8}$). The GRU reference lands differently: its direct gain at landing is 13 to 22 instead of 10.3, which lowers the upper edge of its band from $19.7\,B$ to about $9$ to $16\,B$, and on the trapped seeds its landing orbit keeps moving (repeat 0, seed 2, the start with the largest segment: $u$ between $-1.6$ and $-0.07$, about 17 half-widths $r^*_u$), so it sweeps the peak and the arms, while the LQR-gain policy settles at a contracting fixed point. On that seed-2 start the expanding steps lie mostly above the band ($\Ju/B$ median $+29$: oscillatory expansion, $m_k<-1$), not on the wrong-sign arm. Prediction for the pending architecture runs: DPC with the two-parameter linear policy is not trapped on any LN MSE 3000 run (consistent with the two-seed smoke test); for the MLP the prediction requires its own reference controller.
+\end{enumerate}
+
+\subsection{What it does not show}
+\begin{enumerate}
+\setcounter{enumi}{6}
+\item For the GRU the statistic uses the direct gain, not the exact augmented closed loop. Per start, the scalar and the exact exponents correlate only moderately (median correlation 0.4 to 0.55 across families), and they can differ substantially in either direction (repeat 0: $-0.27$ against $-0.03$ on seed 0, $+0.65$ against $+0.45$ on seed 2). Two trapped runs are flagged by $\Lambda^\star$ although the exact loop of the reference is tame: LN MSE repeat 2 seed 8 ($\Lambda^\star=89$; exact exponent $+0.04$, gradient 3.7, and its 8 neighbours at most 20) and slope-from-step-0 seed 9 repeat 0 ($\Lambda^\star=84$, gradient 0.55). For these the memory of the reference GRU happens to compensate the expansion; we expect that the policies DPC actually visits lack that compensation (the notes' straight-line spike for repeat 2 seed 8 is $10^{56}$), but this is an interpretation, testable with training checkpoints, not a theorem.
+\item Three slope-from-step-0 traps are missed ($\Lambda^\star$ 2.5 to 6.5: seed 4 repeat 1, seed 9 repeat 1, seed 3 repeat 2). Two of them also showed no straight-line spike in the notes; their mechanism remains open.
+\item The threshold was chosen after seeing the LN MSE runs. The held-out families support it (no false positives in 150 runs) but contain only 8 traps.
+\item Theorem~\ref{thm:mult} gives a sufficient condition for the gradient pathology at the good policy; for the GRU, $\Lambda^\star$ with the direct gain is a statistic suggested by it (Remark~\ref{rem:rnn}). That AdamW then fails to reach the good policy is an empirical step (warm-start expulsion and per-start clipping in the notes), not part of the theorem.
+\item One plant ($A=1.03$, $B=0.01$), one surrogate architecture, regulation only.
+\end{enumerate}
+
+%=====================================================================
+\section*{References}
+\begin{itemize}
+\setlength{\itemsep}{0.1em}
+\item Y.~Bengio, P.~Simard, P.~Frasconi. Learning long-term dependencies with gradient descent is difficult. IEEE Transactions on Neural Networks 5(2), 1994.
+\item S.~Brody, U.~Alon, E.~Yahav. On the expressivity role of LayerNorm in transformers' attention. Findings of ACL, 2023.
+\item L.~Metz, C.~D.~Freeman, S.~S.~Schoenholz, T.~Kachman. Gradients are not all you need. arXiv:2111.05803, 2021.
+\item P.~Parmas, C.~E.~Rasmussen, J.~Peters, K.~Doya. PIPPS: flexible model-based policy search robust to the curse of chaos. ICML, 2018.
+\item R.~Pascanu, T.~Mikolov, Y.~Bengio. On the difficulty of training recurrent neural networks. ICML, 2013.
+\item P.~M.~Riechers. Geometry and dynamics of LayerNorm. arXiv:2405.04134, 2024.
+\item H.~J.~T.~Suh, M.~Simchowitz, K.~Zhang, R.~Tedrake. Do differentiable simulators give better policy gradients? ICML, 2022.
+\item J.~Xu, X.~Sun, Z.~Zhang, G.~Zhao, J.~Lin. Understanding and improving layer normalization. NeurIPS, 2019.
+\item The Prenorm LayerNorm Jacobian Anomaly (project reference derivation, September 2026).
+\end{itemize}
+
+\end{document}

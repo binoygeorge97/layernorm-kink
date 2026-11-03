@@ -1,0 +1,11 @@
+# CPU is enough for every local task. Versions used in the analysis sandbox (Python 3.13):
+# jax 0.12, optax 0.2.8, numpy 2.5, scipy 1.18, pandas 3.0, matplotlib 3.11, nbformat 5.11.
+# Earlier results were produced with the Colab defaults of Oct 2026; any recent jax works (float64 is switched on in code).
+jax
+optax
+numpy
+scipy
+pandas
+matplotlib
+nbformat
+pillow

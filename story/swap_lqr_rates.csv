@@ -1,0 +1,21 @@
+surrogate,design,failed,catastrophic
+LN MSE 3000,surrogate A^ and B^ (what LQR normally gets),26.477272727272727,10.795454545454545
+LN MSE 3000,"TRUE A, surrogate B^",29.772727272727273,12.15909090909091
+LN MSE 3000,"surrogate A^, TRUE B",13.522727272727272,4.090909090909091
+LN MSE 3000,TRUE A and B (only u^ from the surrogate),2.272727272727273,0.0
+LN slope from 0,surrogate A^ and B^ (what LQR normally gets),5.795454545454545,1.3636363636363635
+LN slope from 0,"TRUE A, surrogate B^",7.159090909090909,1.4772727272727273
+LN slope from 0,"surrogate A^, TRUE B",1.8181818181818181,0.0
+LN slope from 0,TRUE A and B (only u^ from the surrogate),0.3409090909090909,0.0
+LN MSE 12000,surrogate A^ and B^ (what LQR normally gets),6.4772727272727275,1.1363636363636365
+LN MSE 12000,"TRUE A, surrogate B^",7.386363636363637,1.1363636363636365
+LN MSE 12000,"surrogate A^, TRUE B",3.0681818181818183,0.22727272727272727
+LN MSE 12000,TRUE A and B (only u^ from the surrogate),1.8181818181818181,0.22727272727272727
+LN two-stage,surrogate A^ and B^ (what LQR normally gets),5.681818181818182,0.9090909090909091
+LN two-stage,"TRUE A, surrogate B^",6.0227272727272725,0.9090909090909091
+LN two-stage,"surrogate A^, TRUE B",2.272727272727273,0.0
+LN two-stage,TRUE A and B (only u^ from the surrogate),2.272727272727273,0.0
+static norm,surrogate A^ and B^ (what LQR normally gets),0.5681818181818182,0.0
+static norm,"TRUE A, surrogate B^",0.5681818181818182,0.0
+static norm,"surrogate A^, TRUE B",0.45454545454545453,0.0
+static norm,TRUE A and B (only u^ from the surrogate),0.45454545454545453,0.0

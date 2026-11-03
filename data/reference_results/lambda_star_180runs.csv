@@ -1,0 +1,181 @@
+family,rep,seed,trap,S_seg_max
+LN MSE 3000,0,0,0,5.302
+LN MSE 3000,0,1,1,17.034
+LN MSE 3000,0,2,1,131.144
+LN MSE 3000,0,3,0,3.062
+LN MSE 3000,0,4,0,2.781
+LN MSE 3000,0,5,0,2.822
+LN MSE 3000,0,6,0,1.056
+LN MSE 3000,0,7,0,5.97
+LN MSE 3000,0,8,1,52.414
+LN MSE 3000,0,9,1,79.922
+LN MSE 3000,1,0,0,8.612
+LN MSE 3000,1,1,1,18.813
+LN MSE 3000,1,2,1,158.084
+LN MSE 3000,1,3,0,3.098
+LN MSE 3000,1,4,0,4.561
+LN MSE 3000,1,5,0,2.759
+LN MSE 3000,1,6,0,1.006
+LN MSE 3000,1,7,0,7.28
+LN MSE 3000,1,8,1,66.973
+LN MSE 3000,1,9,1,83.963
+LN MSE 3000,2,0,0,7.395
+LN MSE 3000,2,1,1,34.586
+LN MSE 3000,2,2,1,118.416
+LN MSE 3000,2,3,0,2.107
+LN MSE 3000,2,4,0,4.539
+LN MSE 3000,2,5,0,2.61
+LN MSE 3000,2,6,0,1.111
+LN MSE 3000,2,7,0,5.783
+LN MSE 3000,2,8,1,89.433
+LN MSE 3000,2,9,1,38.254
+LN MSE 12000,0,0,0,0.294
+LN MSE 12000,0,1,0,2.053
+LN MSE 12000,0,2,0,2.531
+LN MSE 12000,0,3,0,0
+LN MSE 12000,0,4,0,1.842
+LN MSE 12000,0,5,0,0.25
+LN MSE 12000,0,6,0,0
+LN MSE 12000,0,7,0,0
+LN MSE 12000,0,8,0,1.283
+LN MSE 12000,0,9,0,0.149
+LN MSE 12000,1,0,0,0.272
+LN MSE 12000,1,1,0,1.598
+LN MSE 12000,1,2,0,2.011
+LN MSE 12000,1,3,0,0
+LN MSE 12000,1,4,0,1.943
+LN MSE 12000,1,5,0,0.236
+LN MSE 12000,1,6,0,0
+LN MSE 12000,1,7,0,0
+LN MSE 12000,1,8,0,0.834
+LN MSE 12000,1,9,0,0.084
+LN MSE 12000,2,0,0,0.273
+LN MSE 12000,2,1,0,2.059
+LN MSE 12000,2,2,0,2.148
+LN MSE 12000,2,3,0,0
+LN MSE 12000,2,4,0,2.191
+LN MSE 12000,2,5,0,0.27
+LN MSE 12000,2,6,0,0
+LN MSE 12000,2,7,0,0
+LN MSE 12000,2,8,0,1.067
+LN MSE 12000,2,9,0,0.132
+LN slope from 0,0,0,0,0
+LN slope from 0,0,1,0,4.896
+LN slope from 0,0,2,1,72.094
+LN slope from 0,0,3,0,4.295
+LN slope from 0,0,4,0,6.818
+LN slope from 0,0,5,0,1.451
+LN slope from 0,0,6,0,0.192
+LN slope from 0,0,7,0,0.174
+LN slope from 0,0,8,0,1.558
+LN slope from 0,0,9,1,83.513
+LN slope from 0,1,0,0,0
+LN slope from 0,1,1,0,5.696
+LN slope from 0,1,2,1,94.812
+LN slope from 0,1,3,0,6.889
+LN slope from 0,1,4,1,2.494
+LN slope from 0,1,5,0,2.057
+LN slope from 0,1,6,0,0.203
+LN slope from 0,1,7,0,0.166
+LN slope from 0,1,8,0,0.847
+LN slope from 0,1,9,1,3.371
+LN slope from 0,2,0,0,0
+LN slope from 0,2,1,0,4.837
+LN slope from 0,2,2,1,93.847
+LN slope from 0,2,3,1,6.452
+LN slope from 0,2,4,0,1.293
+LN slope from 0,2,5,0,5.447
+LN slope from 0,2,6,0,0.188
+LN slope from 0,2,7,0,0.123
+LN slope from 0,2,8,0,1.125
+LN slope from 0,2,9,1,45.101
+LN two-stage,0,0,0,0
+LN two-stage,0,1,0,0
+LN two-stage,0,2,0,2.178
+LN two-stage,0,3,0,0
+LN two-stage,0,4,0,0
+LN two-stage,0,5,0,0
+LN two-stage,0,6,0,0
+LN two-stage,0,7,0,0
+LN two-stage,0,8,0,3.837
+LN two-stage,0,9,0,0
+LN two-stage,1,0,0,0
+LN two-stage,1,1,0,0
+LN two-stage,1,2,0,1.643
+LN two-stage,1,3,0,0
+LN two-stage,1,4,0,0
+LN two-stage,1,5,0,0
+LN two-stage,1,6,0,0
+LN two-stage,1,7,0,0
+LN two-stage,1,8,0,0.512
+LN two-stage,1,9,0,0
+LN two-stage,2,0,0,0
+LN two-stage,2,1,0,0
+LN two-stage,2,2,0,1.736
+LN two-stage,2,3,0,0
+LN two-stage,2,4,0,0
+LN two-stage,2,5,0,0
+LN two-stage,2,6,0,0
+LN two-stage,2,7,0,0
+LN two-stage,2,8,0,3.542
+LN two-stage,2,9,0,0
+no norm,0,0,0,0
+no norm,0,1,0,0
+no norm,0,2,0,0
+no norm,0,3,0,0
+no norm,0,4,0,0
+no norm,0,5,0,0
+no norm,0,6,0,0
+no norm,0,7,0,0
+no norm,0,8,0,0
+no norm,0,9,0,0
+no norm,1,0,0,0
+no norm,1,1,0,0
+no norm,1,2,0,0
+no norm,1,3,0,0
+no norm,1,4,0,0
+no norm,1,5,0,0
+no norm,1,6,0,0
+no norm,1,7,0,0
+no norm,1,8,0,0
+no norm,1,9,0,0
+no norm,2,0,0,0
+no norm,2,1,0,0
+no norm,2,2,0,0
+no norm,2,3,0,0
+no norm,2,4,0,0
+no norm,2,5,0,0
+no norm,2,6,0,0
+no norm,2,7,0,0
+no norm,2,8,0,0
+no norm,2,9,0,0
+static norm,0,0,0,0
+static norm,0,1,0,0
+static norm,0,2,0,0
+static norm,0,3,0,0
+static norm,0,4,0,0
+static norm,0,5,0,0
+static norm,0,6,0,0
+static norm,0,7,0,0
+static norm,0,8,0,0
+static norm,0,9,0,0
+static norm,1,0,0,0
+static norm,1,1,0,0
+static norm,1,2,0,0
+static norm,1,3,0,0
+static norm,1,4,0,0
+static norm,1,5,0,0
+static norm,1,6,0,0
+static norm,1,7,0,0
+static norm,1,8,0,0
+static norm,1,9,0,0
+static norm,2,0,0,0
+static norm,2,1,0,0
+static norm,2,2,0,0
+static norm,2,3,0,0
+static norm,2,4,0,0
+static norm,2,5,0,0
+static norm,2,6,0,0
+static norm,2,7,0,0
+static norm,2,8,0,0
+static norm,2,9,0,0
