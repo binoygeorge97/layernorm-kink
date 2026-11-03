@@ -163,10 +163,11 @@ if SURROGATES_ONLY:                                      # Task 2a stage A: surr
 D.run_dpc(MODELS, SEEDS, PLANT, SIGMA, KERNEL, OUT, SURR, label_dir=LABEL_DIR, curriculum=CURRICULUM, n_x0=N_X0,
           dtype=jnp.float64 if DTYPE == "float64" else jnp.float32, reps=REPS, sur_dir=SUR_DIR)
 print(f"done in {(time.time() - t0) / 60:.1f} min")
-if SURROGATES_ONLY:
+if SURROGATES_ONLY or (MODELS and all(m.get("kind") == "true" for m in MODELS)):   # stage A: surrogates and/or oracle only
     z = shutil.make_archive(OUT.rstrip("/") + "_stageA", "zip", OUT)
-    print("SURROGATES_ONLY: stage A complete, zipped to", z, "- the rest of the notebook is skipped (this stop is intended).")
-    raise SystemExit("surrogates-only run finished")""")
+    print("Stage A complete (surrogates and/or oracle only), zipped to", z,
+          "- the rest of the notebook needs DPC-through-surrogate runs and is skipped (this stop is intended).")
+    raise SystemExit("stage A run finished")""")
 
 md("""## Check 1 - the surrogates are the Level 1 models
 Medians over seeds of the Level 1 metrics of the surrogates used here. With the full settings they should match the

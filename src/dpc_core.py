@@ -622,7 +622,14 @@ def run_dpc(models, seeds, plant, sigma, kernel, out_dir, surr_cfgs, label_dir=N
               f"| {time.time() - t0:.0f}s", flush=True)
     if surr_rows:
         import pandas as pd
-        pd.DataFrame(surr_rows).to_csv(os.path.join(out_dir, "surrogates.csv"), index=False)
+        new = pd.DataFrame(surr_rows)
+        fn = os.path.join(out_dir, "surrogates.csv")
+        if os.path.exists(fn):                          # keep the rows of models not trained in this call (e.g. the main
+            old = pd.read_csv(fn)                       # study's rows when the robust / optimiser models are added later)
+            keep = old[~old.model.isin(set(new.model))]
+            if len(keep):
+                new = pd.concat([keep, new], ignore_index=True)
+        new.to_csv(fn, index=False)
 
 
 # ------------------------------------------------------------------------------------------------ #

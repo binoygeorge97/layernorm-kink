@@ -18,11 +18,12 @@ ONLY   = ["true plant (oracle)"]
 REPS   = [0, 1, 2]
 ```
 In the "Optimiser-side control" cell: `RUN_ROBUST = False`. In "Optimiser baselines": `RUN_OPT = False` (default).
-Results go to `MyDrive/dpc_out_mlp`. The cells after training may print empty tables (only the oracle exists); that is
-expected. Download: `MyDrive/dpc_out_mlp` (only `controllers/` and `dpc_results.csv` are needed).
+Results go to `MyDrive/dpc_out_mlp`. With only the oracle selected, the notebook zips the folder right after the training
+cell (`MyDrive/dpc_out_mlp_stageA.zip`) and stops on purpose with "stage A run finished" (the later cells need
+DPC-through-surrogate runs). Download that zip. (Tested locally in QUICK mode, 3 Nov.)
 
 ## Run 2 - Task 1 Stage A: linear oracle (~10 min)
-Same as Run 1 with `ARCH   = "linear"`. Results: `MyDrive/dpc_out_linear`.
+Same as Run 1 with `ARCH   = "linear"`. Results: `MyDrive/dpc_out_linear_stageA.zip`.
 
 ## Run 3 - Task 2a Stage A: surrogates and GRU oracle at B = 0.1 (~1-1.5 h: 60 surrogates incl. 20 with slope labels, then the oracle)
 ```
@@ -34,7 +35,7 @@ ROOT   = "dpc_out_B01"
 SURROGATES_ONLY = True
 ```
 `RUN_ROBUST = False`, `RUN_OPT = False`. The run stops on purpose after the training cell with
-"surrogates-only run finished" and writes `MyDrive/dpc_out_B01_stageA.zip`. Download that zip.
+"stage A run finished" and writes `MyDrive/dpc_out_B01_stageA.zip`. Download that zip.
 Safety: the notebook refuses a plant other than (1.03, 0.01) in `dpc_out`, and the surrogate cache refuses files trained on
 another plant, so nothing can be mixed with the B = 0.01 study.
 

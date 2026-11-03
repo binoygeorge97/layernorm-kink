@@ -21,7 +21,7 @@ for st in sets:
     name = st.split("=")[0].strip()
     done = False
     for c in nb.cells:
-        if c.cell_type != "code" or done:
+        if c.cell_type != "code" or done or c.source.startswith("%%writefile"):   # never edit the embedded modules
             continue
         lines = c.source.split("\n")
         for k, ln in enumerate(lines):

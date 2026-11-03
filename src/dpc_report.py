@@ -411,6 +411,9 @@ def fig_kink_vs_gap(R, S, out_dir, col="gap_small_dyn"):
     if not len(S):
         return None
     M = R.merge(S[["model", "seed", "Ju_sup_rel"]], on=["model", "seed"])
+    M = M[M.model.isin(ORDER)]                          # the plotted models only (robust / optimiser runs are not in ORDER)
+    if not len(M):
+        return None
     fig, ax = plt.subplots(figsize=(7.5, 4.6))
     for m in [m for m in ORDER if m in set(M.model)]:
         g = M[M.model == m]
