@@ -1,0 +1,9 @@
+LN MSE 3000  s1: loss 2.593 |g| 3.85 cos min/med 1.0000/1.0000 | first Adam step lr 1e-3: dL +0.1217 (1st order -0.0963); lr 1e-4: -0.00672 (-0.00963) | curvature along sign step 126
+LN MSE 3000  s2: loss 2.655 |g| 0.652 cos min/med 0.9966/0.9999 | first Adam step lr 1e-3: dL +0.1893 (1st order -0.0121); lr 1e-4: -0.00064 (-0.00121) | curvature along sign step 225
+LN MSE 3000  s8: loss 2.676 |g| 1.52 cos min/med 1.0000/1.0000 | first Adam step lr 1e-3: dL +0.1176 (1st order -0.0472); lr 1e-4: -0.00183 (-0.00472) | curvature along sign step 89
+LN MSE 3000  s9: loss 2.618 |g| 0.615 cos min/med 1.0000/1.0000 | first Adam step lr 1e-3: dL +0.1871 (1st order -0.0174); lr 1e-4: -0.00005 (-0.00174) | curvature along sign step 85.6
+LN MSE 3000  s3: loss 2.507 |g| 1.54 cos min/med 1.0000/1.0000 | first Adam step lr 1e-3: dL +0.3113 (1st order -0.0359); lr 1e-4: +0.01298 (-0.00359) | curvature along sign step 6.4
+LN MSE 3000  s7: loss 2.585 |g| 2.73 cos min/med 1.0000/1.0000 | first Adam step lr 1e-3: dL +0.2980 (1st order -0.0642); lr 1e-4: -0.00285 (-0.00642) | curvature along sign step 110
+LN MSE 3000  s4: loss 2.566 |g| 1.78 cos min/med 1.0000/1.0000 | first Adam step lr 1e-3: dL +0.3001 (1st order -0.0577); lr 1e-4: +0.00721 (-0.00577) | curvature along sign step 425
+LN two-stage s2: loss 2.875 |g| 0.956 cos min/med 1.0000/1.0000 | first Adam step lr 1e-3: dL +0.2179 (1st order -0.0149); lr 1e-4: -0.00032 (-0.00149) | curvature along sign step 44.4
+LN two-stage s9: loss 2.006 |g| 1.7 cos min/med 1.0000/1.0000 | first Adam step lr 1e-3: dL +0.1372 (1st order -0.0471); lr 1e-4: -0.00283 (-0.00471) | curvature along sign step 86.9
