@@ -64,4 +64,5 @@ one start carries 94-100 %), and yet training from scratch is never trapped (gap
 | linear, same surrogates | yes | no |
 | MLP, LN MSE 3000 (9 seeds) and slope from 0 | no | yes |
 So at B = 0.01 the explosion at the good controller is neither necessary (MLP) nor sufficient (linear) for a trap. Lambda*
-measures the explosion well (it bounds the gradient size on every run); it is the link from explosion to trap that fails.
+measures the explosion well: ||grad|| <= 4.7 e^Lambda* holds on all 180 GRU runs (max ratio 4.63), on all 90 linear runs
+checked here (max 0.41) and on 89 of 90 MLP runs (one at 6.1); it is the link from explosion to trap that fails.
