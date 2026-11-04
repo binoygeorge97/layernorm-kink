@@ -47,3 +47,9 @@
 
 ## Q9 (done) - commit ac9ecc2
 - docs/RESULTS_far_field.md: Phi(theta) from the weights; branch -> Phi as 1/rho; branch-gradient exponents along rays -1.84 to -2.01, across -0.75 to -0.99 (medians per seed). Decay laws confirmed, so "-0.98" need not be softened; suggested phrasing "about d^-1 (fit -0.98 on LN MSE 3000)".
+
+## Q4 (done) - 18:02 UTC, commits d8596c5, 8bd07a2
+- Run 6 analysed with the frozen b01_report.py, unchanged. B = 0.1 oracle hashes match. 30 rows per family, no robust rows.
+- Traps persist: LN MSE 3000 7/30 trapped (s1 r0-r2, s2 r0-r2, s9 r2); all other families 0. B = 0.01 had 12 + 8.
+- R1 (direct Lambda*, 77d8455): 1 hit, 6 misses, 0 FA -> not held (script label "partly"); R2 held; aug rule (91238b4) failed (0 predicted).
+- Decision rule: claim NOT restricted to low-authority plants. docs/RESULTS_B01.md lists the claims about Lambda* that now need your decision (three prospective failures).
