@@ -70,3 +70,32 @@ Answer to "first kick or later steps?": neither alone. Clipping only the first s
 broken pair (6 of 6). Clipping every step except the first expels 4 of 6. Only clipping every step keeps all six. With the
 R3 result below (AdamW without momentum keeps most broken pairs), one candidate reading is that a single unclipped,
 exploded step contaminates the momentum that drives later updates. Numbers only; not tested further here.
+
+## R3: consecutive gradients, AdamW without momentum, normalised gradient descent (analysis/warmstart_arms.py)
+Same warm start: repeat-0 oracle GRU, 1000 repeat-0 starts, N = 200, 100 epochs, a separate unvmapped run per pair and arm.
+Arms:
+- plain: AdamW lr 1e-3 (realised again).
+- beta1 = 0: AdamW without momentum, otherwise identical.
+- ngd: theta <- theta - l_e g_e / ||g_e||, with l_e the plain arm's AdamW step length at the same epoch and pair.
+
+Cosine between consecutive plain-arm gradients, epochs 1-20: out/opt/warmstart_arms_cos.csv. In brackets: largest true cost
+at epochs 10-100 / epoch 0.
+| pair | cos(g_e, g_e-1): median, min | plain | beta1 = 0 | normalised GD |
+|---|---|---|---|---|
+| LN MSE s1 (broken) | +1.000, -0.97 | expelled (1.50) | stays (1.03) | expelled (1.13) |
+| LN MSE s2 (broken) | +1.000, -0.71 | stays (1.10) | stays (1.00) | expelled (1.27) |
+| LN MSE s8 (broken) | +1.000, -0.99 | expelled (2.01) | stays (1.03) | stays (1.01) |
+| LN MSE s9 (broken) | +1.000, -0.97 | expelled (1.78) | stays (1.01) | expelled (1.25) |
+| slope s2 (broken) | +1.000, -0.90 | expelled (2.23) | stays (1.02) | stays (1.01) |
+| slope s9 (broken) | +1.000, -0.995 | expelled (1.74) | expelled (1.20) | expelled (1.15) |
+| LN MSE s3, s7, two-stage s2, s9 (healthy) | +0.993 to +1.000, -0.98 to -0.999 | stay (1.01-1.03) | stay (1.01-1.03) | stay (1.01-1.04) |
+| broken expelled (of 6) | | 5 | 1 | 4 |
+Readings:
+- Consecutive gradients are almost parallel on every pair, broken or healthy (median cosine about 1). The minimum near -1 occurs
+  on healthy pairs too, so the cosine does not distinguish them.
+- Removing momentum keeps 5 of the 6 broken pairs at the oracle; only slope s9 is still expelled, the pair whose starts keep
+  exploding on most epochs (B2 (i)).
+- Normalised GD with AdamW's step lengths, no momentum and no per-coordinate scaling, is expelled on 4 of 6.
+- So the drift is not a property of the step length (ngd takes the same steps as AdamW). It is tied to the update direction:
+  momentum, which carries the earlier exploded gradients, together with Adam's per-coordinate scaling keeps the update
+  pointing uphill (B2 (iii): cos(Delta, -g) < 0 after epoch 1 on broken pairs). One run per pair and arm: numbers, not yet a claim.
