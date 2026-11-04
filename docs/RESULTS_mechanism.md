@@ -43,7 +43,7 @@ the first-order prediction a g . Delta, a = 1e-4 ... 1 (17 log-spaced fractions)
 relative error > 50 % (inf = never on the grid).
 | pairs | epoch 0: gradient norm | epoch 0: parting fraction | epochs 1-20: parting fraction | cos(Delta, -g), epochs 1-5 | cos(Delta, -g), epoch 20 |
 |---|---|---|---|---|---|
-| broken (6) | 0.55 (slope s9), 1.3e3 to 1.2e35 (others) | 1e-4 on all 6 | inf on 15 of 18 (1.0 on LN s8 e5, slope s2 e1; 1e-4 on LN s9 e1, gradient 4.6) | -0.28 to -0.04 on 10 of 12 (LN s2 e1 +0.04, slope s9 e1 +0.24) | -0.22 to -0.08 on 4 of 6 (LN s1 +0.05, slope s9 +0.07) |
+| broken (6) | 0.55 (slope s9), 1.3e3 to 1.2e35 (others) | 1e-4 on all 6 | inf on 13 of 18 (1.0 on LN s8 e5 and slope s2 e1; 1e-4 on LN s2 e1, gradient still 3.5e23, and LN s9 e1, gradient 4.6) | -0.28 to -0.04 on 10 of 12 (LN s2 e1 +0.04, slope s9 e1 +0.24) | -0.22 to -0.08 on 4 of 6 (LN s1 +0.05, slope s9 +0.07) |
 | healthy (4) | 0.05 to 0.93 | 0.03 to 0.56 | inf on 10 of 12 (two-stage s9 e5 1.0, two-stage s2 e20 0.56) | +0.14 to +0.26 on all 8 | +0.001 to +0.18 |
 Reading (numbers only): at the good controller the first-order model of the loss is wrong on broken pairs even for a step
 10^4 times smaller than AdamW's (the gradient is 1e3-1e35 and the loss changes by 1e-2). After the first step the loss is
