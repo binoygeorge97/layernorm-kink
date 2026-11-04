@@ -1,0 +1,7 @@
+LN MSE 3000 s1 r0 lr 0.0001: true 2.556 -> 2.569 (max ratio 1.008), surrogate 2.580 -> 2.571
+LN MSE 3000 s2 r0 lr 0.0001: true 2.638 -> 2.809 (max ratio 1.065), surrogate 2.642 -> 2.752
+LN MSE 3000 s8 r0 lr 0.0001: true 2.609 -> 2.619 (max ratio 1.005), surrogate 2.663 -> 2.659
+LN MSE 3000 s9 r0 lr 0.0001: true 2.639 -> 2.641 (max ratio 1.001), surrogate 2.605 -> 2.603
+LN MSE 3000 s3 r0 lr 0.0001: true 2.418 -> 2.419 (max ratio 1.011), surrogate 2.495 -> 2.494
+LN MSE 3000 s7 r0 lr 0.0001: true 2.596 -> 2.599 (max ratio 1.002), surrogate 2.572 -> 2.569
+564s

@@ -39,3 +39,4 @@ the claude.ai project under `claude/theory/results/`; Task 0 regenerates them.
 companion/run_lqr_study.py. Rates exclude starts within 0.5 of the setpoint (880 runs per family per controller).
 
 - data/run6_B01/controllers_check/ (not in git): true_plant__oracle{,__rep1,__rep2}.npz copied read-only from MyDrive/dpc_out_B01/controllers on 2026-11-04 for the oracle parameter-hash check (docs/RESULTS_B01.md, tools/hash_params.py).
+data/run5_mlp_curves/: MyDrive/dpc_out_mlp/dpc_curves.csv (Run 5a, read-only copy 2026-11-04). data/run5_mlp/controllers/LN__J_x___J_u__3000*.npz: read-only copies from MyDrive/dpc_out_mlp/controllers (2026-11-04).
