@@ -163,8 +163,8 @@ Proposed wording (the whole optimiser story in four sentences):
   surrogate rates those controllers 1-3 % better than the oracle controller.
 - Caveat to state with it: the N <= 50, N <= 100 and batch 100 trap counts are confounded with horizon/noise mismatch until
   the matched-oracle control is run (RESULTS_opt.md S2(b)); do not quote "truncation does not avoid the trap".
-Note: the range "0.9-2.2 %" in the request is the run-level range without lr 1e-4's per-seed value; with per-seed medians
-it is 0.94-2.42 %, with run-level medians 0.94-2.16 %. I propose quoting the per-seed numbers, since the test uses them.
+Note: the range "0.9-2.2 %" in the request is the run-level median range (0.94-2.16 %, Run 4 table). Per-seed medians over
+repeats, which the paired test uses, give 0.94-2.42 %. I propose quoting the per-seed range next to the test.
 
 Every place that says otherwise (OLD copied verbatim; NEW proposed):
 18. docs/CLAIMS.md, row D11
