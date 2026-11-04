@@ -182,3 +182,8 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
 Run 8 = replication of trap rates and of Part 1 on seeds 10-29; no Lambda* or predictor test. After Run 7 I will pre-register:
 trap/failed counts per family with seed-bootstrap prediction intervals from seeds 0-9, and Part 1 for the three families
 trained only on Colab (MSE 12000, slope from 0, no norm). Run 8 settings unchanged (above).
+
+## S5: full default QUICK of notebook cd6eb9e (done)
+- tools/run_quick.py on src/dpc_through_surrogates.ipynb at cd6eb9e (= HEAD for this file), CPU, 400 s, no errors. Against the
+  QUICK run of ca00843: same file list; all 44 csv/npz files identical except wall-time fields (train_s, train_s_per_seed). The
+  no-norm/static npz kink metrics are NaN in both (undefined without LN; equal with equal_nan). Both Run 7 and Run 9 use cd6eb9e.
