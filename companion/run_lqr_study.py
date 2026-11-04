@@ -4,6 +4,8 @@ import os; _A,_B=(float(v) for v in os.environ.get("LK_PLANT","1.03,0.01").split
 OUT=paths.DATA; plant=L.Plant() if (_A,_B)==(1.03,0.01) else L.Plant(A=_A,B=_B); seeds=[int(v) for v in os.environ.get("LK_SEEDS","0,1,2,3,4,5,6,7,8,9").split(",")]
 FAM=[("LN MSE 3000","MSE (3000)"),("LN MSE 12000","MSE (12000)"),("LN slope from step 0","J_x + J_u (3000)"),
      ("LN two-stage","J_x + J_u (two-stage)"),("no norm","no norm, MSE"),("static norm","static norm, MSE")]
+if os.environ.get("LK_FAMILIES")=="rms": FAM=[("RMS MSE 3000","RMS MSE (3000)"),("RMS two-stage","RMS J_x + J_u (two-stage)")]   # Q7d
+elif os.environ.get("LK_FAMILIES"): FAM=[f for f in FAM if f[0] in os.environ["LK_FAMILIES"].split(";")]                          # subset (Q6c)
 models=[PC.Model.surrogate(OUT,s,seeds,n) for n,s in FAM]
 EXTRA="--extra" in sys.argv     # Task 4.3: adds settle_time; writes lqr_study_extra.csv instead
 t0=time.time(); df,trajs,ref=PC.lqr_study(models,plant,extra=EXTRA); print(time.time()-t0)
