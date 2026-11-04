@@ -61,6 +61,8 @@ MODELS = [dict(name="true plant (oracle)", short="oracle", kind="true", group="o
 # Optimiser-side control (2026-10-23): the same LN MSE surrogate, but DPC aggregates per-start gradients with a bounded vote
 # (robust_grad 'clip'). If this rescues the trapped seeds, the failure is the exploding per-trajectory gradient, and this is
 # the generic "fix the optimiser" baseline. Not in MODELS by default: add it in the notebook (ROBUST_MODELS) for the A100 run.
+RMS_MODELS = [dict(name="RMSNorm, MSE (3000)", short="RMS MSE", surrogate="RMS MSE (3000)", group="RMS"),     # Q7, not in MODELS
+              dict(name="RMSNorm, two-stage", short="RMS two-stage", surrogate="RMS J_x + J_u (two-stage)", group="RMS")]
 ROBUST_MODELS = [dict(name="LN, MSE (3000), clipped grads", short="LN MSE\nclipped", surrogate="MSE (3000)", group="MSE robust",
                       aggregate="clip", clip=3.0),
                  dict(name="LN, MSE (3000), unit grads", short="LN MSE\nunit vote", surrogate="MSE (3000)", group="MSE robust",
@@ -93,6 +95,11 @@ def surrogate_configs(T=3000, T_extra=1000, T_long=12000):
     long = dict(name="MSE (12000)", group="MSE", loss="MSE", schedule=str(T_long), norm="layer", labels=None,
                 phases=[("mse", 0, 0, T_long)])
     C["MSE (12000)"] = long
+    # Q7: RMSNorm surrogates (new names; nothing above changes)
+    C["RMS MSE (3000)"] = dict(name="RMS MSE (3000)", group="RMS", loss="MSE", schedule="3000", norm="rms", labels=None,
+                               phases=[("mse", 0, 0, T)])
+    C["RMS J_x + J_u (two-stage)"] = dict(name="RMS J_x + J_u (two-stage)", group="RMS", loss="J_x + J_u", schedule="two-stage",
+                                          norm="rms", labels="est", phases=[("mse", 0, 0, T), ("sob", 1.0, 1.0, T_extra)])
     return C
 
 
@@ -606,7 +613,7 @@ def run_dpc(models, seeds, plant, sigma, kernel, out_dir, surr_cfgs, label_dir=N
             continue
         print(f"  DPC through '{m['name']}', repeats {missing}", flush=True)
         C, curves = train_controllers(m, P, S0, seeds, plant, curriculum, n_x0, dtype=dtype, reps=missing)
-        rows, trajs = evaluate_controllers(m, C, P, S0, seeds, plant, dtype, met if m.get("norm") == "layer" else None, missing)
+        rows, trajs = evaluate_controllers(m, C, P, S0, seeds, plant, dtype, met if m.get("norm") in ("layer", "rms") else None, missing)
         for r in rows:
             r["train_s_per_seed"] = (time.time() - t0) / (len(seeds) * len(missing))
         append_rows(res, rows)

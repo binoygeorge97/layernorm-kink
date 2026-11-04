@@ -86,7 +86,7 @@ class Model:
 
     def kink(self):
         """(zmin_x, zmin_u, rstar_x, rstar_u) per seed, NaN for kink-free models."""
-        if self.true or self.norm != "layer":
+        if self.true or self.norm not in ("layer", "rms"):
             return tuple(np.full(len(self.seeds), np.nan) for _ in range(4))
         return tuple(self.met[k] for k in ("zmin_x", "zmin_u", "rstar_x", "rstar_u"))
 

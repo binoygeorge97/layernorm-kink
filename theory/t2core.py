@@ -34,10 +34,13 @@ FAMILIES = {  # display name -> (surrogate file, norm, controller file stem or N
     "LN two-stage": ("J_x___J_u__two_stage", "layer", None),
     "no norm": ("no_norm__MSE", "none", None),
     "static norm": ("static_norm__MSE", "static", None),
+    "RMS MSE 3000": ("RMS_MSE__3000", "rms", None),                   # Q7 (only where the files exist)
+    "RMS two-stage": ("RMS_J_x___J_u__two_stage", "rms", None),
 }
 RESULTS_NAME = {"LN MSE 3000": "LN, MSE (3000)", "LN MSE 12000": "LN, MSE (12000)",
                 "LN slope from 0": "LN, J_x + J_u (3000)", "LN two-stage": "LN, two-stage",
-                "no norm": "no norm, MSE", "static norm": "static norm, MSE"}
+                "no norm": "no norm, MSE", "static norm": "static norm, MSE",
+                "RMS MSE 3000": "RMSNorm, MSE (3000)", "RMS two-stage": "RMSNorm, two-stage"}
 
 
 def _unflat(d, prefix):
@@ -75,6 +78,8 @@ def seed_slice(tree, i):
 def _norm(kind, h, s0):
     if kind == "none":
         return h
+    if kind == "rms":                                         # RMSNorm (Q7): no centring
+        return h / jnp.sqrt(jnp.mean(h ** 2) + EPS)
     r = h - jnp.mean(h)
     if kind == "layer":
         return r / jnp.sqrt(jnp.mean(r ** 2) + EPS)

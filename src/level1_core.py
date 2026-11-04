@@ -224,6 +224,8 @@ def unstack_tree(tree, i):
 def _norm(kind, h, s0):
     if kind == "none":
         return h
+    if kind == "rms":                                         # RMSNorm (Q7): no centring
+        return h / jnp.sqrt(jnp.mean(h ** 2, -1, keepdims=True) + EPS)
     r = h - jnp.mean(h, -1, keepdims=True)
     if kind == "layer":
         return r / jnp.sqrt(jnp.mean(r ** 2, -1, keepdims=True) + EPS)
@@ -331,21 +333,28 @@ def get_evaluator(norm):
 _PM = np.eye(H) - np.ones((H, H)) / H
 
 
-def kink_center(p):
+def _centring(norm):
+    """The projection of Theorem 1: P = I - 11^T/H for LayerNorm, I for RMSNorm (no centring; docs/theory/rmsnorm)."""
+    return np.eye(H) if norm == "rms" else _PM
+
+
+def kink_center(p, norm="layer"):
     """z_min = argmin ||P(E^T z + b)|| and the kink half-widths r*_x, r*_u (Theorem U2 of the theory paper)."""
     E, b = np.asarray(p["E"], float), np.asarray(p["b"], float)
-    A = _PM @ E.T
-    c0 = _PM @ b
+    PM = _centring(norm)
+    A = PM @ E.T
+    c0 = PM @ b
     z = -np.linalg.lstsq(A, c0, rcond=None)[0]
     r = A @ z + c0
     D = np.sqrt(r @ r + H * EPS)
     return z, D / np.linalg.norm(A[:, 0]), D / np.linalg.norm(A[:, 1])
 
 
-def kink_line_points(p, n_lines=41, n_pts=61, tmax=8.0):
+def kink_line_points(p, n_lines=41, n_pts=61, tmax=8.0, norm="layer"):
     """Points on the closed-form kink lines (x-sweeps at fixed u and u-sweeps at fixed x), each dense around
     its own closest-approach point. Clipped into the box so the count is fixed (2 n_lines n_pts)."""
     E, b = np.asarray(p["E"], float), np.asarray(p["b"], float)
+    _PM = _centring(norm)
     th = np.tan(np.linspace(-np.arctan(tmax), np.arctan(tmax), n_pts))
     out = []
     for sweep, fixed, lim in ((0, np.linspace(-UMAX, UMAX, n_lines), XMAX), (1, np.linspace(-XMAX, XMAX, n_lines), UMAX)):
@@ -444,8 +453,8 @@ def evaluate_batch(P, S0, norm, plant, test, ngrid, full=False):
                flip_area=np.mean(np.sign(jug) != np.sign(plant.Ju(xg, ug))[None], 1))
     inner = (np.abs(xg) <= 0.95 * XMAX) & (np.abs(ug) <= 0.95 * UMAX)        # box without its outer 5 % (edge effects)
     out["flip_area_interior"] = np.mean((np.sign(jug) != np.sign(plant.Ju(xg, ug))[None])[:, inner], 1)
-    if norm == "layer":
-        KL = np.stack([kink_line_points(unstack_tree(P, i)) for i in range(S)])
+    if norm in ("layer", "rms"):
+        KL = np.stack([kink_line_points(unstack_tree(P, i), norm=norm) for i in range(S)])
         _, jxk, juk = ev(P, jnp.asarray(KL[..., 0]), jnp.asarray(KL[..., 1]), s0)
         ekx = np.abs(np.asarray(jxk) - plant.Jx(KL[..., 0], KL[..., 1])).max(1)
         eku = np.abs((np.asarray(juk) - plant.Ju(KL[..., 0], KL[..., 1])) / plant.B).max(1)
@@ -461,7 +470,7 @@ def evaluate_batch(P, S0, norm, plant, test, ngrid, full=False):
     scr = [lqr_screen(jxe[i], jue[i], plant, r, us) for i in range(S)]
     for key in scr[0]:
         out[key] = np.array([s[key] for s in scr])
-    geo = [kink_center(unstack_tree(P, i)) for i in range(S)] if norm == "layer" else [(np.full(2, np.nan), np.nan, np.nan)] * S
+    geo = [kink_center(unstack_tree(P, i), norm) for i in range(S)] if norm in ("layer", "rms") else [(np.full(2, np.nan), np.nan, np.nan)] * S
     out["zmin_x"] = np.array([g[0][0] for g in geo])
     out["zmin_u"] = np.array([g[0][1] for g in geo])
     out["rstar_x"] = np.array([g[1] for g in geo])
