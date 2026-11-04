@@ -102,3 +102,9 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
 - R4: out/claims_lambda_draft.md: old -> new for CLAIMS.md (T1, T2, T4, T5, T6 -> T6/T7a/T8), NOTES_theory.md, theory.tex
   (summary, item 9, remark after Cor. 6), background note (4 places); companions: no hit; slides 17-19: no Lambda* text (deck read),
   3 proposed slide-fix entries (15-17) for slides 22-23 that Run 5 contradicts. NOT applied.
+
+## R5 (protocol committed, computing) - protocol 51b4b07 + amendment 9e62f0c, script ec... (analysis/trap_predictor.py)
+- Candidates C1 (warm-start expulsion on the true cost) and C2 (on the surrogate cost), 720 development runs; selection rule in
+  prereg/PROTOCOL_trap_predictor.md, fixed before computing. Linear set running (~4.5 min per (family, repeat) under load);
+  MLP chained after it; both GRU sets chained after the R3 arms job. Expected finish: several hours (GRU units are the slow part).
+  The freeze commit will come before the Run 8 pre-registration.
