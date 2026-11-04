@@ -68,3 +68,5 @@ Runs predicted trapped:
 - RMS MSE 3000, seed 8, repeat 2: Lambda* = 109.14
 
 Also registered: RS1. RMS two-stage has no trapped run (0 of 30).
+
+Part 2 registered at commit 608dc88b6224586018206ecb0ff9016d6c45e3f3 (2026-11-04), before any DPC controller was trained through an RMSNorm surrogate.
