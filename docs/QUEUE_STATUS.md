@@ -125,3 +125,10 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
 - R3: consecutive-gradient cosine ~ +1 everywhere (not discriminating); AdamW beta1 = 0 expels 1/6 broken (slope s9), plain 5/6,
   normalised GD with AdamW's step lengths 4/6; healthy 0 in every arm. The drift goes with momentum + Adam scaling, not with
   step length.
+
+## Q6c (done) - commit 83ee3c7, docs/RESULTS_heldout.md
+- Trained locally: LN MSE 3000, two-stage, static norm, seeds 10-29 (26 + 47 + 28 min; six families would exceed 3 h).
+- Fixed LQR failed / catastrophic: LN MSE 3000 36.2 / 17.8 %, two-stage 6.2 / 1.1 %, static norm 1.1 / 0 % (seeds 0-9: 26.5 / 10.8, 5.7 / 0.9, 0.6 / 0).
+- H1 failed (6 of 12 cells outside, all above), H2 failed by its cell condition (ordering 36 % vs 1 % holds), H3 failed (4 of 40 LN
+  centres at 0.13-0.14 along u). The qualitative result replicates and is stronger; the 10-seed intervals were too narrow.
+- Possible statement change for you: "every LN kink centre within 0.1 of (0, 0)" -> about 0.15 over 50 seeds.
