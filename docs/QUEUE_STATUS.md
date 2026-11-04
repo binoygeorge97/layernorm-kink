@@ -139,3 +139,10 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
 - Run 9 trap predictions committed (608dc88): Lambda* > 12.1 on 9 of 30 RMS MSE 3000 runs (seeds 1, 2, 8, every repeat), 0 of 30 two-stage.
 - Run 9 settings in docs/RESULTS_rms.md (after Run 4; MyDrive/dpc_out; ~45 min). Before you start it, the RMS path of the notebook
   needs a QUICK test here (queued when CPU frees up; ONLY = RMS models goes through dpc_report code that has not seen these names).
+
+## Notebook cd6eb9e QUICK-tested for Run 9 (RMS path) - 21:29 UTC
+- tools/run_quick.py with ONLY = ["RMSNorm, MSE (3000)", "RMSNorm, two-stage"] on a COPY of a finished default QUICK folder (as
+  MyDrive/dpc_out holds the main study): OK (199 s). dpc_results / dpc_diag / dpc_curves / surrogates.csv grew only by the RMS
+  rows (32 -> 40, 24 -> 32, 192 -> 240, 16 -> 20); every old row identical.
+- On an EMPTY folder the run stops at the D11 gradient-audit cell, which always loads the LN MSE 3000 and two-stage surrogates.
+  That cannot happen on MyDrive/dpc_out (both exist); Run 9 settings in docs/RESULTS_rms.md stand.
