@@ -31,5 +31,5 @@ Findings.
 Consequence for the wording of the setpoint law (CLAUDE.md 1.3 "|B_hat/B - 1| ~ 0.49 d^-0.98"): the across-direction law
 predicts an exponent of -1 for an input slope measured across the radial direction, and the fitted -0.98 is consistent with
 it. The decay laws are confirmed, so the softening of Task 5.4 is not needed; a safe phrasing is "about d^-1 (fit -0.98 on
-LN MSE 3000), as the 1/rho across-direction law of Corollary 3 predicts". (The frozen B01 report script fits all four LN
+LN MSE 3000), as the 1/rho across-direction law (theory.tex, singular-value corollary, part (c)) predicts". (The frozen B01 report script fits all four LN
 families pooled and gets 0.39 d^-0.88 at B = 0.01; quote the LN MSE 3000 fit when citing -0.98.)

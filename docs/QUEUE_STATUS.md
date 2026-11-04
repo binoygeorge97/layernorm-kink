@@ -36,3 +36,14 @@
 - Q7a: docs/theory/rmsnorm/rmsnorm_kink.pdf. RMSNorm = Theorem 1 with P = I; reduction verified to 9e-16 (theory/verify_rms.py), peak gain sqrt(H) sigma_max / D to 4e-9; for the same weights D_RMS >= D_LN (P is a contraction), differing by <= 4 % on the trained LN MSE 3000 encoders.
 - Q7b: configs "RMS MSE (3000)", "RMS J_x + J_u (two-stage)", DPC list RMS_MODELS (not in MODELS), t2core families "RMS MSE 3000", "RMS two-stage". tools/regress_norm.py: 4 existing configs bit-identical (weights and metrics), t2core identical; tools/regress_dpc.py PASSED.
 - Q7c: prereg/PREREG_rms.md Part 1: M1 centres within 0.1, M2 kink size within factor 2 of LN MSE 3000, M3 fixed-LQR failed in [13.3, 53] %, M4 two-stage lower and <= 13.3 %.
+
+## A1 / Q0 complete - 17:56 UTC, commit 91238b4 (see Q0 above)
+
+## Q8 (code done, milestone (i) passed; (ii) running) - commit f380964
+- src/plant2_core.py: Plant2(A, B) parameters, data box, 3-input / 2-output surrogate, 3-input local-quadratic WLS labels (fixed k = 1500; the scalar k-selection is not ported yet), slope loss with per-input scales, Level 1 metrics, ellipsoid kink metrics, DARE LQR study (fixed / rescheduled), GRU / MLP DPC with d_x = 2, vector Lambda.
+- docs/theory/vector_lambda/vector_lambda.pdf written before use: Lambda = max over stretches after landing of log ||M_k2 ... M_k1||_2, M_k = J_x_hat - J_u_hat K_k.
+- tools/test_plant2.py (milestone i, P1 plant): equilibria exact, labels on noiseless linear data 2.8e-8, vector Lambda = scalar on diagonal / 1x1 cases (9e-16), one surrogate + kink metrics + mini LQR + short DPC: PASSED. Scalar code untouched (separate module; regress_dpc passed).
+- Milestone (ii) tools/plant2_quick.py (6 families x 2 seeds, scaled 0.1) running in background. No Colab run, no plant choice.
+
+## Q9 (done) - commit ac9ecc2
+- docs/RESULTS_far_field.md: Phi(theta) from the weights; branch -> Phi as 1/rho; branch-gradient exponents along rays -1.84 to -2.01, across -0.75 to -0.99 (medians per seed). Decay laws confirmed, so "-0.98" need not be softened; suggested phrasing "about d^-1 (fit -0.98 on LN MSE 3000)".
