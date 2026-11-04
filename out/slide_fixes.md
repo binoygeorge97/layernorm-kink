@@ -96,3 +96,40 @@ controllers on the true plant (slide 16, recomputed 3 Nov), out/theory/t2_runs_L
   artifacts; grep them for these strings.
 - Companions: fixed in companion/full/main.tex and companion/part1/main.tex (arms; K vs B_hat in three places; decay
   exponent wording). Neither companion describes the slide 16 panels, so fix (c) of Task 5.1 had no hit there.
+
+## 2026-11-04: final entries after the approved claims draft (Lambda* after Run 5/6, optimiser after Run 4)
+Deck version read: 1793714113-a1c3. OLD strings are copied from that version; replace by NEW. Kink-centre entries (slide 5
+big number and caption, slide 7 notes) are held until Run 7.
+
+A. Slide 19 (dpcwarm), speaker notes, paragraph 2, last sentence
+   OLD: `This is an argument, not a measurement: global clipping has not been run (the same warm-start test with the summed gradient clipped is the next cheap check).`
+   NEW: `Measured since: in the warm start, global clipping is expelled on 4 of 6 broken pairs (per-start clipping 0 of 6). From scratch, however, global clipping rescues 3 of the 4 trapped seeds and lr 1e-4 all 4, at the cost of plain training, but they leave 2 and 3 traps in 30: step size matters there, not only direction.`
+B. Slide 19 (dpcwarm), speaker notes, paragraph 3
+   OLD: `Caveat: clipping from a random initialisation (not a warm start) has not been run yet (RUN_ROBUST, A100). Present per-start clipping as a diagnosis (it identifies the cause), not as a fix. The fix is two-stage training (next slides).`
+   NEW: `From a random initialisation (Run 4): per-start clipping leaves 0 of 30 trapped, with 5 model-mismatch failures; unit per-start aggregation leaves 0 of 30 failed. Both cost about 4x the training time (120 vs 28 s per seed). Global clipping and lr 1e-4 cost the same as plain training and leave 2 and 3 traps. Two-stage training is still better (median gap 0.04 % vs 0.9-2.4 %) at about the cost of plain DPC plus 1000 surrogate training steps (next slides).`
+C. Slide 22 (synthesis), speaker notes, last paragraph
+   OLD: `for gradient-based control, check the gradient norm at a known-good controller;`
+   NEW: `for gradient-based control, a huge gradient at a known-good controller is a warning sign (it accompanied 14 of the 20 GRU traps at B = 0.01: at least 1e3, against at most about 1e2 on all 160 untrapped runs), not a test (6 GRU traps and all 40 MLP traps had a tame gradient there; the linear policy survives an exploding one);`
+D. Slide 23 (limits), left column, bullet 2
+   OLD: `One architecture (pre-norm, H = 16); RMSNorm and post-norm are predictions, not results`
+   NEW: `One surrogate block (pre-norm, H = 16); RMSNorm and post-norm are predictions, not results`
+E. Slide 23 (limits), left column, bullet 3
+   OLD: `Per-start clipping not yet run from scratch: a causal test, not yet a fix`
+   NEW: `Per-start clipping and unit aggregation work from scratch but cost 4x; global clipping and lr 1e-4 cost the same and leave 2-3 traps`
+F. Slide 23 (limits), right column, bullet 2
+   OLD: `Per-start gradient clipping trained from a random start`
+   NEW: `Matched-oracle control for the truncated-horizon and minibatch baselines`
+G. Slide 23 (limits), speaker notes, paragraph 3 (the one starting "Architecture:"), last sentence
+   OLD: `the trap statistics are already policy-independent because they are measured at the reference controller.`
+   NEW: `the trap statistics are measured at each architecture's own reference controller. Run 5 showed they do not transfer: the MLP is trapped (40 of 180 runs) with a tame gradient at its reference, and the linear policy is never trapped although its reference's gradient explodes on 12 runs.`
+H. Slide 23 (limits), speaker notes, paragraph 4
+   OLD: `Clipping: rescues a warm start; whether it lets training from a random start find the good basin is pending (RUN_ROBUST, A100).`
+   NEW: `Clipping: rescues a warm start; from a random start, per-start clipping removes every trap and unit aggregation every failure (Run 4, both about 4x the training time). Global clipping and lr 1e-4 also rescue most trapped seeds from scratch at the cost of plain training (2 and 3 traps left), though not in the warm start.`
+
+Additional, found while checking (not in the approved draft; your call):
+I. Slide 23 (limits), speaker notes, paragraph 3, first sentence after "Architecture:"
+   OLD: `MLP and linear DPC policies are queued (ARCH = mlp / linear; only a 2-seed smoke test so far, not a result);`
+   NEW: `MLP and linear DPC policies were run (Run 5, 180 runs each): the MLP is trapped on 40, the linear policy on none;`
+J. Slide 23 (limits), right column, bullet 1
+   OLD: `MLP and linear DPC policies on the same surrogates`
+   NEW: `Why the MLP is trapped without an exploding gradient (in progress)`
