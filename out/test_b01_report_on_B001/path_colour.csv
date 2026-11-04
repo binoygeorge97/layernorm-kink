@@ -1,0 +1,17 @@
+plant,controller,wrong_sign_share,n,failed_pct
+B = 0.01,LQR fixed,0,2014,0.9930486593843099
+B = 0.01,LQR fixed,0-2 %,204,0.9803921568627451
+B = 0.01,LQR fixed,2-10 %,46,0.0
+B = 0.01,LQR fixed,> 10 %,24,0.0
+B = 0.01,LQR sched,0,2083,1.1041766682669227
+B = 0.01,LQR sched,0-2 %,111,9.00900900900901
+B = 0.01,LQR sched,2-10 %,44,27.27272727272727
+B = 0.01,LQR sched,> 10 %,50,40.0
+B = 0.01 (under test),LQR fixed,0,2014,0.9930486593843099
+B = 0.01 (under test),LQR fixed,0-2 %,204,0.9803921568627451
+B = 0.01 (under test),LQR fixed,2-10 %,46,0.0
+B = 0.01 (under test),LQR fixed,> 10 %,24,0.0
+B = 0.01 (under test),LQR sched,0,2083,1.1041766682669227
+B = 0.01 (under test),LQR sched,0-2 %,111,9.00900900900901
+B = 0.01 (under test),LQR sched,2-10 %,44,27.27272727272727
+B = 0.01 (under test),LQR sched,> 10 %,50,40.0
