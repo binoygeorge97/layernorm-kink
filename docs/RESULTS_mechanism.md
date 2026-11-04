@@ -34,3 +34,21 @@ Correction to RESULTS_opt item 3: "all 1000 starts have norms 3-40" is too stron
 has median 15-39 on LN MSE s1, s2, s8 and slope s2 (21 on slope s2), but reaches 290-997 on some tame epochs, and on LN MSE s9
 and slope s9 the starts keep exploding on most epochs. "Tame and agreeing after the first step" holds for 4 of the 6 broken
 pairs (LN MSE s1, s2, s8, slope s2), not all 6.
+
+## (iii) Step-scale check (analysis/step_scale.py, out/opt/step_scale.csv, summary out/opt/step_scale_summary.csv)
+At the good controller (epoch 0) and at epochs 1, 5, 20 of a plain warm start (AdamW lr 1e-3, mean gradient; this run is
+not vmapped like the harness, so its epochs 1-20 are a separate realisation of the plain run), take the update Delta that
+AdamW would apply from that state, and compare L(theta + a Delta) - L(theta) (DPC training loss through the surrogate) with
+the first-order prediction a g . Delta, a = 1e-4 ... 1 (17 log-spaced fractions). Parting fraction = smallest a with
+relative error > 50 % (inf = never on the grid).
+| pairs | epoch 0: gradient norm | epoch 0: parting fraction | epochs 1-20: parting fraction | cos(Delta, -g), epochs 1-5 | cos(Delta, -g), epoch 20 |
+|---|---|---|---|---|---|
+| broken (6) | 0.55 (slope s9), 1.3e3 to 1.2e35 (others) | 1e-4 on all 6 | inf on 15 of 18 (1.0 on LN s8 e5, slope s2 e1; 1e-4 on LN s9 e1, gradient 4.6) | -0.28 to -0.04 on 10 of 12 (LN s2 e1 +0.04, slope s9 e1 +0.24) | -0.22 to -0.08 on 4 of 6 (LN s1 +0.05, slope s9 +0.07) |
+| healthy (4) | 0.05 to 0.93 | 0.03 to 0.56 | inf on 10 of 12 (two-stage s9 e5 1.0, two-stage s2 e20 0.56) | +0.14 to +0.26 on all 8 | +0.001 to +0.18 |
+Reading (numbers only): at the good controller the first-order model of the loss is wrong on broken pairs even for a step
+10^4 times smaller than AdamW's (the gradient is 1e3-1e35 and the loss changes by 1e-2). After the first step the loss is
+locally linear along AdamW's step on almost every pair, so the step is not too long for the surface; but on broken pairs the
+update points uphill against the current gradient (cos(Delta, -g) < 0), and the actual loss change agrees with the
+first-order prediction (e.g. LN MSE s8 epoch 20: +0.0509 actual, +0.0507 predicted). On healthy pairs the update points
+downhill. Whether the uphill update is the Adam moments carrying the exploded epoch-0/1 gradient is not tested here
+(the earlier moment-reset test, RESULTS_opt item 3, argues against a pure moment explanation).
