@@ -73,4 +73,48 @@ milestone, and the short LaTeX note defining the matrix $\Lambda$ before it is u
 Colab A100 (float64): Level 1, six families $\times$ 10 seeds, about 1 h (the label estimator in 3 inputs is the slow part);
 DPC GRU and MLP through the 60 surrogates, 3 repeats, about 3--4 h; LQR study and $\Lambda^\star$ local (minutes to an hour).
 Total about 5 h of A100 in two sessions (surrogates + oracle first, then the pre-registration, then DPC), as for Task 2a.
+
+\section*{Addendum, 4 November 2026: the second error channel (P1a)}
+Decision recorded: the user confirmed P1 with the settings above (docs/plant2/DECISION.md). The safe band above scales the
+input slope only along $B$. A surrogate can also give $x_1^+$ a slope in $u$, which the true plant does not have. Write the
+surrogate's input slope as $\hat J_u=0.01\,(h,\ g)^\top$ (true: $h=0$, $g=1$), keep the state slope correct
+($\hat J_x=A$), and close the loop with the true LQR gain $K=(11.086,\ 11.903)$: the multiplier is $M(h,g)=A-\hat J_uK$.
+Figure~\ref{fig:band2} maps its spectral radius (\texttt{analysis/plant2\_band.py}).
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.82\textwidth]{fig_band2.png}
+\caption{Spectral radius of $A-\hat J_uK$ for P1 at the LQR gain, as a function of the two input-slope entries
+($h$ for $x_1$, $g$ for $x_2$, in units of 0.01). Black: $\rho=1$; inside the band the loop is stable. Dot: the true plant
+($\rho=0.956$). Red: the safe range of $h$ at $g=1$.}
+\label{fig:band2}
+\end{figure}
+
+\begin{table}[h]\centering\footnotesize
+\begin{tabular}{lc}
+\toprule
+input slope for $x_2$, $g$ & safe range of $h$ (units of 0.01)\\
+\midrule
+0.29 & $-0.030$ to $1.008$\\
+0.5 & $-0.248$ to $1.607$\\
+1 (correct) & $-0.765$ to $3.033$\\
+2 & $-1.800$ to $5.886$\\
+5 & $-4.904$ to $12.950$\\
+10 & $-10.08$ to $7.679$\\
+17 & $-17.32$ to $0.300$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Reading. With the $x_2$ input slope correct ($g=1$), the loop stays stable for $-0.77<h<3.03$, i.e.\ for a spurious
+$x_1$ input slope between $-0.0077$ and $0.030$. The negative side is narrow: a wrong-direction slope of $0.77\,|B|$ into
+$x_1$ is enough to destabilise the loop, even with every other slope exact. The band is asymmetric because $x_1$ is driven
+through $x_2$ ($A_{12}=0.05>0$); a negative $h$ pushes $x_1$ against the way the controller moves it. Near both edges of the
+$g$-band the safe range of $h$ shrinks to almost nothing (at $g=0.29$: $-0.03$ to $1.0$; at $g=17$: up to $0.30$). Check: at
+$h=0$ the $g$-band is $0.261$ to $17.29$ (written $0.27$ to $17.3$ in the table above, rounding).
+Consequence for the study. The kink errors of the scalar surrogates were $6.7$ to $201\,B$ at the peak, so a two-state
+surrogate's $x_1$-column input slope only needs a small fraction of that to leave the band. The Level 1 metrics and the LQR
+analysis of P1 will therefore report both input-slope entries separately (peak $|\hat J_u[x_1]|/|B|$ and
+$|\hat J_u[x_2]/B-1|$), and the closed-loop multiplier is computed with the full $2\times1$ $\hat J_u$, as
+\texttt{plant2\_core} already does.
+
 \end{document}
