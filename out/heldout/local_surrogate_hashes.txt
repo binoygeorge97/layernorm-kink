@@ -1,0 +1,6 @@
+J_x___J_u__two_stage.npz seeds 10 - 29 sha256(all arrays) 9d9abfc1cea1fec1521f703d20be37d2a0593848cd1e8f430086560fded19ec4
+   weights-only sha256 c8234ad7e41a1ea8be6bba50c364c5dc667c12e27393008c3a334a2971cdccad
+MSE__3000.npz seeds 10 - 29 sha256(all arrays) 566a829d735791f166eb3f585bdaed44c51af5d463d56d99e0c653fe0a1c1498
+   weights-only sha256 6e27e06b5f162914d73e742e5c23c33984cc491ace3d92e3459ce3f2a8e39955
+static_norm__MSE.npz seeds 10 - 29 sha256(all arrays) b97bb9571d49672d4b4909b85f5cbc8728fd50111db1b6e4329fd97fb1b731dc
+   weights-only sha256 6d38bb9768557f8e0af81a635fc157a2c3ae80f9e4d804081bd3a83cc5d8978e
