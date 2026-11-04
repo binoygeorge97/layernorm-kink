@@ -129,6 +129,8 @@ if ROOT:
     OUT = os.path.join(os.path.dirname(OUT.rstrip("/")), ROOT)
 if (PLANT.A, PLANT.B) != (1.03, 0.01) and os.path.basename(OUT.rstrip("/")) == "dpc_out":
     raise ValueError("a plant other than (1.03, 0.01) needs its own ROOT (e.g. 'dpc_out_B01'): never mix with dpc_out")
+if list(SEEDS) != list(range(10)) and not QUICK and os.path.basename(OUT.rstrip("/")) == "dpc_out":
+    raise ValueError("seeds other than 0-9 need their own ROOT (e.g. 'dpc_out_s10_29'): the surrogate cache in dpc_out would be retrained")
 CURRICULUM, N_X0, SURR = D.CURRICULUM, D.N_X0, D.surrogate_configs(3000, 1000, 12000)
 if QUICK:
     SEEDS = [0, 1]
