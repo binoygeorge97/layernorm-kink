@@ -171,3 +171,14 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
   (for pre-registrations and frozen scripts) the first data file time. Three wrong hashes: 4ac35d4 -> 218cbbe (messages),
   a42bb3b -> ca00843 (messages, this file; dated note added), 1459b51 -> f9208f8 (RESULTS_LOG line 69; correction appended).
 - Two pre-registration parts were committed after their run began writing (B01_aug Part 1/2, both labelled so already).
+
+## S2-S4 (done) - commits fb51876 (S2, RESULTS_opt.md), 61327d1 (S3 draft), 2d9d7b7 (S4, RESULTS_predictor.md)
+- S2: P5a marked confounded; matched-oracle control proposed (~15-20 min Colab, small code change, not made); Holm paired tests;
+  clip failures = model mismatch (surrogate rates own controller 1-3 % better than the oracle); Adam-v test proposed (CPU ~3-4 h).
+- S3: optimiser and kink-centre wording drafted (items 18-37); the 0.1 centre statement also misses on seeds 0-9 (MSE 12000 seed 4, 0.105).
+- S4: no predictor frozen; search stopped. 390 of 720 warm starts computed; C1/C2 FA at B = 0.1 >= 5.2 % on the full set.
+
+## Run 8 plan changed (2026-11-04, after S4)
+Run 8 = replication of trap rates and of Part 1 on seeds 10-29; no Lambda* or predictor test. After Run 7 I will pre-register:
+trap/failed counts per family with seed-bootstrap prediction intervals from seeds 0-9, and Part 1 for the three families
+trained only on Colab (MSE 12000, slope from 0, no norm). Run 8 settings unchanged (above).
