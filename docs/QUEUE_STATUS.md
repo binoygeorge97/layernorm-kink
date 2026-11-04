@@ -76,3 +76,16 @@ Run 8 (DPC; same folder; ~2.5-3 h): as Run 7 but
 SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, two-stage", "static norm, MSE"]; REPS = [0, 1, 2]
 ```
 (4 models x 20 seeds x 3 repeats x ~35 s per seed per repeat ~ 2.3 h, plus evaluation and the diagnostic cell; the oracles of Run 7 are reused).
+
+## R1 (done) - 18:16 UTC, commit be5e1ca: does Run 4 (ONLY = []) shrink the dpc_out tables? No.
+- Code (notebook at ce89f6f and a42bb3b alike): MODELS = [] when ONLY = []. run_dpc then trains nothing and only APPENDS to
+  dpc_results.csv / dpc_curves.csv (append_rows); surrogates.csv is rewritten only if rows were trained, and then MERGED with
+  the old rows. run_diagnostic(MODELS = []) produces no rows and does not write dpc_diag.csv (it only reads it). The robust
+  and optimiser blocks append their own rows (run_dpc / run_diagnostic per model). Only the derived tables/*.csv
+  (dpc_summary, dpc_paired, policy_gains) are rewritten, from the full files. Same as the end-to-end QUICK test of 3 Nov.
+- Drive now (MyDrive/dpc_out, 18:15 UTC): dpc_results.csv 116 457 B, dpc_diag.csv 22 047 B, surrogates.csv 11 948 B,
+  dpc_curves.csv 372 577 B, all last modified 22 Oct; byte sizes equal my local copies. Backup of all four (210 / 180 /
+  60 / 7560 rows) committed in data/pre_run4_backup (MD5SUMS included).
+- If a file ever does shrink: in Google Drive (web), right-click the file -> File information -> Manage versions (or
+  "Manage versions" in the menu), download the version dated 22 Oct (kept 30 days), and either upload it as a new version
+  there or send it to me; nothing needs deleting. The local backup above is a second copy.
