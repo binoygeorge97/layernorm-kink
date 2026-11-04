@@ -456,3 +456,102 @@ def lambda_from(xs, Ms, land=0.2):
         Pm = np.where(ok[..., None, None], Pm / np.where(ok, nrm, 1.0)[..., None, None], Pm)
         best = np.maximum(best, np.where(act, L, 0.0).max(1))
     return best, kl
+
+
+# ----------------------------------------------------------------------------------------------- P1 study settings (added 2026-11-04)
+# Start region for P1 (docs/plant2/DECISION.md): the parallelogram x = a * 4.5 * V1 + b * 1.8 * V2, a, b in [-1, 1], along the
+# principal axes of the recoverable set of the saturated LQR; it lies inside the recoverable set scaled by 0.9 (the analogue
+# of the scalar starts |x0| <= 3 against |x| <= 3.33 holdable) and contains every setpoint equilibrium (r, -0.4 r), |r| <= 4.
+START_V1, START_V2, START_HALF = np.array([0.861, -0.509]), np.array([0.509, 0.861]), (4.5, 1.8)
+SETPOINTS_P1 = [-4.0, -2.0, -1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0, 2.0, 4.0]
+CURRICULUM = [(5, 1000), (10, 2000), (20, 2000), (50, 1000), (100, 1000), (200, 2000)]   # as the scalar study
+N_X0 = 1000
+
+
+def starts_from_unit(ab):
+    """ab [..., 2] in [-1, 1]^2 -> states in the start parallelogram"""
+    ab = jnp.asarray(ab)
+    return ab[..., :1] * START_HALF[0] * jnp.asarray(START_V1) + ab[..., 1:] * START_HALF[1] * jnp.asarray(START_V2)
+
+
+def training_starts(seed, rep=0, n=N_X0):
+    """DPC training starts: key 30000 + seed + 1000 rep (scalar scheme), uniform in the start parallelogram."""
+    return starts_from_unit(jax.random.uniform(jax.random.PRNGKey(30_000 + int(seed) + 1000 * int(rep)), (n, 2), jnp.float64, -1, 1))
+
+
+def test_starts(n=1000):
+    """typical test starts: key 12345, uniform in the start parallelogram"""
+    return starts_from_unit(jax.random.uniform(jax.random.PRNGKey(12345), (n, 2), jnp.float64, -1, 1))
+
+
+def lqr_grid_starts():
+    """the 5 x 5 LQR start grid: a, b in linspace(-1, 1, 5) in the start parallelogram (25 starts)"""
+    t = np.linspace(-1, 1, 5)
+    return np.asarray(starts_from_unit(np.array([(a, b) for a in t for b in t])))
+
+
+def level1_metrics_split(p, s0, norm, plant, n=21):
+    """level1_metrics plus the two input-slope entries separately (P1a): Ju1_sup_rel = max |J_u_hat[x1] - B1| / |B|
+    (B1 = 0 for P1: a spurious x1 input slope, h), Ju2_sup_rel = max |J_u_hat[x2] / B2 - 1|, Ju2_min_rel / Ju2_max_rel = range of
+    J_u_hat[x2] / B2, Ju1_min_rel / Ju1_max_rel = range of J_u_hat[x1] / |B| (signed h), on the same grid."""
+    out = level1_metrics(p, s0, norm, plant, n)
+    G = grid3(plant, n)
+    J = np.asarray(jax.vmap(lambda z: jac(p, z, s0, norm))(jnp.asarray(G)))
+    Bn, B1, B2 = np.linalg.norm(plant.B), plant.B[0, 0], plant.B[1, 0]
+    h = (J[:, 0, 2] - B1) / Bn; g = J[:, 1, 2] / B2
+    out.update(Ju1_sup_rel=float(np.abs(h).max()), Ju1_min_rel=float(h.min()), Ju1_max_rel=float(h.max()),
+               Ju2_sup_rel=float(np.abs(g - 1).max()), Ju2_min_rel=float(g.min()), Ju2_max_rel=float(g.max()))
+    return out
+
+
+def train_dpc_seeds(dyn_of, Pstack, keys, X0s, curriculum=CURRICULUM, arch="gru", lr=1e-3, wd=1e-4, log_every=0):
+    """DPC for several seeds at once (vmapped): dyn_of(p) -> dyn(x, u); Pstack = pytree with a leading seed axis (or None for the
+    true plant, then dyn_of(None) is used for all); keys [S] controller keys; X0s [S, n, 2]. Same loss / optimiser as train_dpc.
+    Returns stacked controllers and a list of (N, mean loss per seed) at the end of each stage."""
+    C = jax.vmap(lambda k: init_ctrl(k, arch))(keys)
+    opt = optax.adamw(lr, weight_decay=wd); O = jax.vmap(opt.init)(C)
+    hist = []
+    for N, E in curriculum:
+        def one(c, o, p, X0):
+            l, g = jax.value_and_grad(dpc_loss)(c, dyn_of(p), X0, N)
+            u, o = opt.update(g, o, c)
+            return optax.apply_updates(c, u), o, l
+        step = jax.jit(jax.vmap(one, in_axes=(0, 0, None if Pstack is None else 0, 0)))
+        for e in range(E):
+            C, O, l = step(C, O, Pstack, X0s)
+        hist.append((N, np.asarray(l)))
+    return C, hist
+
+
+def ctrl_key(seed, rep=0):
+    """controller init key 20000 + seed + 1000 rep (scalar scheme)"""
+    return jax.random.PRNGKey(20_000 + int(seed) + 1000 * int(rep))
+
+
+def plant_tag(plant):
+    return np.concatenate([plant.A.ravel(), plant.B.ravel(), np.asarray(plant.box)])
+
+
+def save_npz(fn, plant, tree=None, **extra):
+    """npz with the plant (A, B, box) stored for the cache guard; tree leaves flattened as 'c:<path>'."""
+    d = {"plant": plant_tag(plant), **{k: np.asarray(v) for k, v in extra.items()}}
+    if tree is not None:
+        for path, leaf in jax.tree_util.tree_flatten_with_path(tree)[0]:
+            d["c:" + "/".join(str(getattr(q, "key", getattr(q, "idx", q))) for q in path)] = np.asarray(leaf)
+    os.makedirs(os.path.dirname(fn), exist_ok=True)
+    np.savez(fn, **d)
+
+
+def load_npz(fn, plant):
+    """(tree, extras) from save_npz; raises if the stored plant differs (pitfall 1 of CLAUDE.md)."""
+    z = np.load(fn)
+    if not np.allclose(z["plant"], plant_tag(plant)):
+        raise ValueError(f"{fn} was made for another plant {z['plant']}")
+    tree = {}
+    for k in z.files:
+        if k.startswith("c:"):
+            node = tree; parts = k[2:].split("/")
+            for q in parts[:-1]:
+                node = node.setdefault(q, {})
+            node[parts[-1]] = jnp.asarray(z[k])
+    return tree, {k: z[k] for k in z.files if not k.startswith("c:") and k != "plant"}
