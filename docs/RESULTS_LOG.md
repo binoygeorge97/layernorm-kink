@@ -103,3 +103,4 @@ results existed on the Drive; wording corrected to "before any Run 5 result was 
 2026-11-04 | Q9 far field (Task 5.4) | ac9ecc2 | theory/far_field.py | dpc_out LN MSE 3000 | along -1.84..-2.01, across -0.75..-0.99, convergence 1/rho | decay laws confirmed
 2026-11-04 | Q8 plant2 module, milestone (i) | f380964 | tools/test_plant2.py | P1 plant (proposal) | all unit checks passed | plant not chosen; no Colab
 2026-11-04 | Q4 Run 6 analysis | d8596c5 8bd07a2 | analysis/b01_report.py --root data/run6_B01 (frozen 180ec7b) | Run 6 dpc_results 17:58:58Z, diag 17:59:21Z | LN MSE 3000 7/30 trapped, others 0; R1 1/7 hits 0 FA (not held), R2 held, aug failed; B01 oracle hashes match | traps persist at B = 0.1
+2026-11-04 | Q10 paper figures and tables | 47fdd6a | python paper/make_figs.py; python paper/make_tables.py | all local CSVs | 7 figures, 8 tables, pending slots | -

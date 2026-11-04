@@ -53,3 +53,7 @@
 - Traps persist: LN MSE 3000 7/30 trapped (s1 r0-r2, s2 r0-r2, s9 r2); all other families 0. B = 0.01 had 12 + 8.
 - R1 (direct Lambda*, 77d8455): 1 hit, 6 misses, 0 FA -> not held (script label "partly"); R2 held; aug rule (91238b4) failed (0 predicted).
 - Decision rule: claim NOT restricted to low-authority plants. docs/RESULTS_B01.md lists the claims about Lambda* that now need your decision (three prospective failures).
+
+## Q10 (done, slots open) - commit 47fdd6a
+- python paper/make_figs.py -> paper/figs (7 figures: LQR rates, kink geometry, swap, DPC traps per architecture/plant, Lambda* scatter retrospective + 3 prospective, optimiser, B = 0.1 side by side); python paper/make_tables.py -> paper/tables (8 booktabs tables; compile-checked, no errors or overfull boxes; needs graphicx).
+- Pending slots fill automatically: Run 4 (re-run analysis/opt_report.py), Run 8 (data/run8_s10_29), Run 9 (data/run9_rms), held-out (out/heldout/outcomes.csv), RMS (out/rms/summary.csv).
