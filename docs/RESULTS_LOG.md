@@ -65,3 +65,14 @@ post hoc 14/20, 0/160, the 3 missed traps not caught | all labelled exploratory 
 (zip too large for the connector); make_prereg_B01.py: Q1 held (LN MSE median peak 18.7 -> 2.6 x B), Q2 held (0.26 %), Q3 held
 (48/48); fixed LQR LN MSE 25.1 % failed / 5.6 % catastrophic; Part 2: 1 of 180 predicted trapped (LN MSE s2 rep 2, 14.7) | - |
 exactness check of t2_arch invalid under chaos (documented in PREREG_arch)
+
+2026-11-04 | A1 oracle hashes (before Runs 5 and 6) | 1459b51 | tools/hash_params.py: SHA-256 over sorted (key, dtype, shape, bytes) of the npz arrays; oracle files fetched read-only from MyDrive today; all 9 equal to the local copies used for PREREG_arch (f945a5c, 322e353) and PREREG_B01 (77d8455) | Drive |
+  dpc_out_mlp/controllers/true_plant__oracle.npz 437aeab32e68c11eaf5b55da18c6bd688091de81a757211f6d0bc273781bee5a
+  dpc_out_mlp/controllers/true_plant__oracle__rep1.npz 23daf5e81f58c627ed1a77985d730afb316101688a8f36a863a62619c518d380
+  dpc_out_mlp/controllers/true_plant__oracle__rep2.npz 4efd7626f0b4afdc29ed100be64b56183c6a987a1d316b5972702c193a3a0c3f
+  dpc_out_linear/controllers/true_plant__oracle.npz d4c421ab4c04d36432f8bbc3d432cb51c849a400b72126966c0ae3385ad91a32
+  dpc_out_linear/controllers/true_plant__oracle__rep1.npz 7e802850b28aada79721f058131b14213ae302672a6d515bd921209d6c86f44c
+  dpc_out_linear/controllers/true_plant__oracle__rep2.npz 1c5cf704bbbebb1de7b3612557b2bcc829e4a101c3143e501e03b24e3c712ff1
+  dpc_out_B01/controllers/true_plant__oracle.npz 64200edf62001f97b3ec35b08126a9d22e53b1a016586bb7d5b15c0781186545
+  dpc_out_B01/controllers/true_plant__oracle__rep1.npz c9b0a7ac64806070ba7a18a1825e9125350ad8a18dafd1789a33b25d2cced55b
+  dpc_out_B01/controllers/true_plant__oracle__rep2.npz 02717862ae1705c9cca3fede38dc155c4d559e0f13b36c0cd213dbadb22e3920
