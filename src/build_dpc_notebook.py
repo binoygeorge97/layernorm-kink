@@ -145,7 +145,7 @@ D.ARCH = ARCH
 SUR_DIR = OUT                                           # surrogates and labels: shared by every architecture
 OUT = D.arch_dir(OUT, ARCH)                             # "gru" keeps the original folder; others get <folder>_<arch>
 os.makedirs(OUT, exist_ok=True)
-MODELS = [m for m in D.MODELS if ONLY is None or m["name"] in ONLY]
+MODELS = [m for m in D.MODELS if ONLY is None or m["name"] in ONLY] + [m for m in D.RMS_MODELS if ONLY is not None and m["name"] in ONLY]   # Q7: RMS models only when named
 print("plant: A =", PLANT.A, "B =", PLANT.B, "| LQR gain", round(D.lqr_gain(PLANT), 4), "| controller:", ARCH,
       "| results go to", OUT, "| surrogates from", SUR_DIR)
 pd.DataFrame([dict(model=m["name"], surrogate=m.get("surrogate", "- (true plant)"),
