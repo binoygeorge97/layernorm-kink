@@ -29,3 +29,42 @@ DPC traps through the RMS surrogates are pre-registered separately (Part 2) afte
 B = 0.01 GRU oracles, threshold 12.1, before any DPC-through-RMS run.
 
 ## Outcomes Part 1 (fill AFTER training and the LQR study; do not edit anything above this line)
+
+## Outcomes Part 1 (filled 2026-11-04; analysis/rms_report.py, out/rms/summary.csv)
+| id | outcome | numbers |
+|---|---|---|
+| M1 | failed (narrowly) | 1 of 20 RMS centres outside 0.1: max offset 0.109 (all others <= 0.1) |
+| M2 | held | RMS MSE 3000 median r*_x 0.233 (band [0.13, 0.52]), r*_u 0.272 ([0.17, 0.67]); LN MSE 3000 0.261, 0.336 |
+| M3 | held | RMS MSE 3000 fixed LQR failed 29.5 % (band [13.3, 53]); catastrophic 15.6 % (LN 26.5 / 10.8 %) |
+| M4 | held | RMS two-stage fixed failed 4.2 % < 29.5 %, and <= 13.3 % (LN two-stage 5.7 %) |
+Peak input-slope error, median: RMS MSE 3000 16.4 B (LN 18.7 B), RMS two-stage 1.43 B (LN 1.19 B). Rescheduled LQR failed /
+catastrophic: RMS MSE 3000 22.2 / 4.1 %, RMS two-stage 3.0 / 0.1 %.
+
+## Part 2 (written 2026-11-04, BEFORE any DPC controller is trained through an RMSNorm surrogate): run-level DPC traps
+Predictor (as registered for the other runs, threshold NOT re-tuned): direct-gain Lambda* of the existing B = 0.01 GRU oracle
+(same seed and repeat) through the local RMS surrogate, theory/t2_test.py (T2_DATA = data/dpc_out_rms, oracle controllers of
+data/dpc_out), trapped iff Lambda* > 12.1. Run-level list: prereg/PREREG_rms_predicted.csv. Scoring as R1 of PREREG_B01: held if
+hit rate >= 0.75 and false-alarm rate <= 0.05; if no run is predicted trapped, held if at most 1 trapped. Trap definition
+CLAUDE.md 1.4.
+Caveats stated in advance: Lambda* failed three prospective tests (docs/RESULTS_B01.md, RESULTS_arch.md). The surrogates DPC
+will use are trained on Colab (Run 9). If their 3000-step weights differ from the local ones, Lambda* is recomputed on the Colab
+surrogates and that is the registered value; this is stated here, before results. The replacement predictor of
+PROTOCOL_trap_predictor.md will be added as an addendum, once frozen, if that happens before Run 9.
+
+| family | runs | predicted trapped | max Lambda* | median Lambda* |
+|---|---|---|---|---|
+| RMS MSE 3000 | 30 | 9 | 155.63 | 4.92 |
+| RMS two-stage | 30 | 0 | 1.91 | 0.00 |
+
+Runs predicted trapped:
+- RMS MSE 3000, seed 1, repeat 0: Lambda* = 47.71
+- RMS MSE 3000, seed 2, repeat 0: Lambda* = 149.54
+- RMS MSE 3000, seed 8, repeat 0: Lambda* = 131.20
+- RMS MSE 3000, seed 1, repeat 1: Lambda* = 45.11
+- RMS MSE 3000, seed 2, repeat 1: Lambda* = 155.63
+- RMS MSE 3000, seed 8, repeat 1: Lambda* = 81.70
+- RMS MSE 3000, seed 1, repeat 2: Lambda* = 37.89
+- RMS MSE 3000, seed 2, repeat 2: Lambda* = 135.43
+- RMS MSE 3000, seed 8, repeat 2: Lambda* = 109.14
+
+Also registered: RS1. RMS two-stage has no trapped run (0 of 30).
