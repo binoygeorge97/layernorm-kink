@@ -45,3 +45,9 @@ direct-gain Lambda* (threshold 12.1).
 ## Compute plan
 analysis/trap_predictor.py, vmapped over the 10 seeds of a (family, repeat). It logs the true and surrogate cost every 5
 epochs and stops a unit early once both rules have fired for every seed. CPU, run in the background.
+
+## Amendment (2026-11-04, before any candidate was computed)
+1. The trap count is 67, not 74: 20 (GRU B = 0.01) + 40 (MLP) + 0 (linear) + 7 (GRU B = 0.1).
+2. C3 (beta1 = 0) is dropped from the development set for cost. C1/C2 need about 12 CPU-hours for the 720 runs, and C3
+   would double that. Momentum is examined separately on the 10 harness pairs (R3). Candidates are now C1 and C2. The rule
+   is otherwise unchanged; the tie-break order is C2 < C1.
