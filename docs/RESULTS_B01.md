@@ -35,8 +35,8 @@ the largest peak input-slope errors (5.2 and 12.2 B; PREREG_B01 Part 1 table). E
 | R1 (direct-gain Lambda* > 12.1, primary) | failed (hit condition) | predicted 1 (LN MSE s2 r2), trapped 7: 1 hit, 6 misses, 0 false alarms; hit rate 0.14 < 0.75, false-alarm rate 0 <= 0.05. The registered rule says "held if both"; the frozen script labels one-of-two "partly" (the convention of PREREG_arch), so the report reads "partly". By the PREREG_B01 text it is not held. |
 | R2 (two-stage, no norm, static norm: no trap) | held | 0 of 90 |
 | aug rule (Lambda*_aug > 12.08, secondary) | failed | predicted 0, trapped 7 (rule: held only if at most 1 trapped) |
-Misses with their predictor values: direct-gain Lambda* 2.55, 3.14, 2.07 (seed 1 r0, r1; s2 r0 3.14), 11.45 (s2 r1), 10.12
-(s1 r2), 6.45 (s9 r2); augmented 2.30 to 9.12. Two misses lie just below 12.1 (11.45, 10.12).
+Misses with their direct-gain Lambda*: s1 r0 2.55, s1 r1 2.07, s1 r2 10.12, s2 r0 3.14, s2 r1 11.45, s9 r2 6.45 (the hit:
+s2 r2 14.75); augmented Lambda*_aug of the seven traps 2.30 to 9.12. Two misses lie just below 12.1 (11.45, 10.12).
 
 ## LQR (Part 1, from 3 Nov, repeated by the frozen report)
 | family | fixed failed / catastrophic, B = 0.01 | B = 0.1 | rescheduled failed / catastrophic, B = 0.01 | B = 0.1 |

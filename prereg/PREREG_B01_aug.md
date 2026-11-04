@@ -45,3 +45,6 @@ Run-level predictions: prereg/PREREG_B01_aug_predicted.csv. For comparison only 
 direct-gain rule (PREREG_B01 Part 2, 77d8455) predicts 1 of 180.
 
 Part 2 committed at 91238b4274df2c6880d1c497be2ab17f4743ceb9 (2026-11-04T17:56:34Z), after Run 6 began writing, before any Run 6 file was read.
+
+## Outcome (filled 2026-11-04 from Run 6, frozen analysis/b01_report.py 180ec7b)
+Failed: 0 predicted, 7 trapped (rule: held only if at most 1 trapped). Lambda*_aug of the seven trapped runs 2.30 to 9.12.

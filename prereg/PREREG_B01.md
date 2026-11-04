@@ -107,3 +107,10 @@ Runs predicted trapped:
 |---|---|---|
 
 Part 2 registered at commit 77d8455ebd10da88547b436f3ea277a6bad376d8 (2026-11-03), before any DPC controller was trained through a B = 0.1 surrogate.
+
+## Outcomes Part 2 (filled 2026-11-04 from Run 6 with the frozen analysis/b01_report.py 180ec7b; details docs/RESULTS_B01.md)
+| id | outcome | numbers |
+|---|---|---|
+| R1 | not held (hit condition failed; false-alarm condition held) | predicted 1, trapped 7 (LN MSE 3000 s1 r0-r2, s2 r0-r2, s9 r2): 1 hit (s2 r2), 6 misses, 0 false alarms; hit rate 0.14, false-alarm rate 0 |
+| R2 | held | 0 of 90 two-stage / no norm / static norm runs trapped |
+Decision rule (Part 1): traps do not vanish at B = 0.1, so the claim is not restricted to low-authority plants.
