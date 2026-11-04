@@ -86,3 +86,6 @@ prereg/ADDENDUM_2026-11-04_lambda_robustness.md committed before any Run 5/6 res
 2026-11-04 | B5 linear oracle gain | see commit | analysis/linear_gain.py | true plant | argmin DPC loss: clip shape K = 10.25,
 tanh shape K = 17.00 (small starts only 10.5); finite-horizon LQR gain 10.29; costs LQR 2.4968, MLP oracle 2.4972 (slope 10.45),
 linear oracle 2.5235 (slope 16.93) | corrects the "terminal weight" explanation in PREREG_arch Part B (addendum, prereg untouched)
+2026-11-04 | B4 Lambda*_aug retrospective (B = 0.01) | 156e71b (definition), 8b26564 (Run-6 threshold) | theory/t2_aug.py, 180 GRU
+runs, 3 CPU processes | dpc_out | zero-false-alarm thresholds > 11.21; 15/20 hits on (11.21, 13.01]; LN MSE separates, midpoint
+12.08 fixed for Run 6 before any B = 0.1 value; anchored scalar 17/20 | retrospective, secondary statistic
