@@ -57,3 +57,22 @@
 ## Q10 (done, slots open) - commit 47fdd6a
 - python paper/make_figs.py -> paper/figs (7 figures: LQR rates, kink geometry, swap, DPC traps per architecture/plant, Lambda* scatter retrospective + 3 prospective, optimiser, B = 0.1 side by side); python paper/make_tables.py -> paper/tables (8 booktabs tables; compile-checked, no errors or overfull boxes; needs graphicx).
 - Pending slots fill automatically: Run 4 (re-run analysis/opt_report.py), Run 8 (data/run8_s10_29), Run 9 (data/run9_rms), held-out (out/heldout/outcomes.csv), RMS (out/rms/summary.csv).
+
+## Q6d (prepared) - Colab Runs 7 and 8 (held-out seeds 10-29), notebook rebuilt at ca00843
+Use the notebook from commit ca00843 (src/dpc_through_surrogates.ipynb; for Run 4 the earlier notebook is fine: the changes only
+add RMS options and a seed guard). I will QUICK-test this notebook locally before you start Run 7 (entry below when done).
+Run 7 (surrogates + GRU oracles; Drive folder MyDrive/dpc_out_s10_29, new; ~45-60 min on an A100):
+```
+QUICK = False; ARCH = "gru"; SEEDS = list(range(10, 30)); DTYPE = "float64"
+PLANT = L.Plant(A=1.03, B=0.01, eps_nl=0.0); ROOT = "dpc_out_s10_29"; LABEL_DIR = None
+SURROGATES_ONLY = True; ONLY = ["true plant (oracle)"]; REPS = [0, 1, 2]
+RUN_ROBUST = False; RUN_OPT = False
+```
+Estimate: six surrogate families x 20 seeds about 2x Run 3 (labels ~16 s per seed), plus 3 x 20 oracle runs (~35 s per seed per repeat).
+After Run 7 (me): hash-compare the Colab 3000-step surrogates with the local ones (data/dpc_out_s10_29; MSE 12000 may drift, pitfall 8);
+Lambda* of the seed 10-29 oracles through the surrogates (threshold 12.1, unchanged); pre-register Run 8 and commit BEFORE you start it.
+Run 8 (DPC; same folder; ~2.5-3 h): as Run 7 but
+```
+SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, two-stage", "static norm, MSE"]; REPS = [0, 1, 2]
+```
+(4 models x 20 seeds x 3 repeats x ~35 s per seed per repeat ~ 2.3 h, plus evaluation and the diagnostic cell; the oracles of Run 7 are reused).
