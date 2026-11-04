@@ -35,7 +35,7 @@ All 20 + 40 + 0 + 7 traps of the full sets except 8 GRU B = 0.01 traps (slope fr
 - Hit rates (for the record; they do not matter once nothing is eligible): C1 12/12, 22/40, -, 6/7 (worst-case 0.55, the
   MLP); C2 10/12, 22/40, -, 5/7.
 - The 9 B = 0.1 false alarms are healthy runs: from scratch, DPC reaches gaps of 0.0-1.8 %. The warm start drifts by 10-38 %
-  (max ratio 1.11-1.38) and then DPC still finds the good controller from a random start. Five of the nine fire at the
+  (max ratio 1.11-1.38) and then DPC still finds the good controller from a random start. Six of the nine fire at the
   first check (epoch 10).
 
 ## Is there a principled justification beyond the development numbers?
