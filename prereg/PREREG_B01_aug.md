@@ -17,3 +17,29 @@ same repeat (theory/t2_aug.py, T2_PLANT = 1.03,0.1, T2_DATA = data/dpc_out_B01).
 and false-alarm rate <= 0.05; if no run is predicted trapped, held if at most 1 run is trapped).
 
 ## Part 2: run-level predictions (appended after computing the B = 0.1 values, before Run 6)
+
+Label: committed after Run 6 began writing, before any Run 6 file was read.
+Written and committed at about 2026-11-04T17:56:34Z (exact commit time in git and docs/RESULTS_LOG.md). First Run 6 file in
+MyDrive/dpc_out_B01 (Drive metadata only, no content opened): trajectories/LN__MSE__3000.npz, created / modified
+2026-11-04T16:50:14.902Z (10:50:14 CT). From dpc_out_B01 only the Run 3 oracle controllers (repeats 0-2) and the six surrogate files
+(fetched 3 Nov) were used; no dpc_results.csv, dpc_diag.csv or non-oracle controller was fetched or read.
+
+Values: out/B01/theory/t2_aug_B01.csv (theory/t2_aug.py, T2_PLANT = 1.03,0.1, T2_DATA = data/dpc_out_B01, the B = 0.1 GRU
+oracle repeats 0-2 and the six B = 0.1 surrogates fetched on 3 Nov; nothing else from dpc_out_B01 was fetched or read).
+Rule (Part 1): predicted trapped iff Lambda*_aug > 12.08. Predicted trapped: 0 of 180 runs.
+
+| family | runs | predicted trapped | max Lambda*_aug | max anchored scalar |
+|---|---|---|---|---|
+| LN MSE 3000 | 30 | 0 | 9.66 | 13.95 |
+| LN MSE 12000 | 30 | 0 | 1.91 | 0.41 |
+| LN slope from 0 | 30 | 0 | 4.64 | 0.42 |
+| LN two-stage | 30 | 0 | 1.05 | 0.00 |
+| no norm | 30 | 0 | 1.05 | 0.00 |
+| static norm | 30 | 0 | 1.05 | 0.00 |
+
+Runs predicted trapped (Lambda*_aug):
+- none
+
+Five largest values: LN MSE 3000 s7 r0 9.66; LN MSE 3000 s1 r2 9.12; LN MSE 3000 s7 r1 8.18; LN MSE 3000 s2 r2 7.21; LN MSE 3000 s2 r1 6.60.
+Run-level predictions: prereg/PREREG_B01_aug_predicted.csv. For comparison only (not a prediction of this file): the primary
+direct-gain rule (PREREG_B01 Part 2, 77d8455) predicts 1 of 180.
