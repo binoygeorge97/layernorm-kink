@@ -146,3 +146,15 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
   rows (32 -> 40, 24 -> 32, 192 -> 240, 16 -> 20); every old row identical.
 - On an EMPTY folder the run stops at the D11 gradient-audit cell, which always loads the LN MSE 3000 and two-stage surrogates.
   That cannot happen on MyDrive/dpc_out (both exist); Run 9 settings in docs/RESULTS_rms.md stand.
+
+## R5 (rule outcome determined; DECISION NEEDED) - 21:35 UTC
+- analysis/select_predictor.py applies the committed rule (51b4b07 + 9e62f0c). Partial development set, 380 of 720 runs
+  (out/predictor/selection_partial.txt; the GRU and MLP sets are still running):
+  | candidate | GRU B = 0.01 hits / FA | MLP hits / FA | linear FA | GRU B = 0.1 hits / FA |
+  |---|---|---|---|---|
+  | C1 warm-start expulsion, true cost | 12/12, 1/38 | 22/40, 1/60 | 0/180 | 6/7, 9/43 |
+  | C2 same, surrogate cost | 10/12, 1/38 | 22/40, 1/60 | 0/180 | 5/7, 9/43 |
+  | B0 Lambda* > 12.1 (reference) | 12/12, 0/38 | 0/40, 0/60 | 12/180 | 1/7, 0/43 |
+- The outcome is already fixed: at B = 0.1 both C1 and C2 have 9 false alarms, and that set has 173 untrapped runs, so their
+  false-alarm rate is >= 9/173 = 5.2 % > 5 % whatever the remaining units give. No candidate is eligible. By the protocol
+  NOTHING IS FROZEN without your decision. The computation continues so that the full numbers are available.
