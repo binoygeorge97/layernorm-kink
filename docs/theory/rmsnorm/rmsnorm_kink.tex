@@ -1,0 +1,76 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\title{The kink without centring: Theorem 1 for a pre-norm RMSNorm block}
+\author{Note for the LayerNorm-kink study (Q7a, 4 November 2026)}
+\date{}
+\begin{document}
+\maketitle
+
+\section{Setting}
+The surrogate's first layer is $h = E z + b$ with $z = (x, u) \in \mathbb{R}^2$, $E \in \mathbb{R}^{H \times 2}$ of rank 2,
+$b \in \mathbb{R}^H$, $H = 16$. LayerNorm normalises the centred vector $P h$, $P = I - \mathbf{1}\mathbf{1}^\top / H$.
+RMSNorm omits the centring:
+\[
+  \mathrm{RMS}(h) = \frac{h}{\sqrt{\|h\|^2 / H + \varepsilon}}, \qquad
+  v = \gamma \odot \mathrm{RMS}(h) + \beta .
+\]
+Theorem 1 was stated with $Q_E = P E$ and $c = P b$. The proposition below is the same statement with $P$ replaced by $I$.
+
+\section{Reduction}
+Let $z^\ast = -(E^\top E)^{-1} E^\top b$ (the point where $\|E z + b\|$ is smallest), $c_\perp = E z^\ast + b$ (the
+part of $b$ orthogonal to the range of $E$), $D^2 = \|c_\perp\|^2 + H \varepsilon$, and $E = U \Sigma V^\top$ a thin singular
+value decomposition ($U \in \mathbb{R}^{H \times 2}$).
+
+\begin{proposition}
+For every $z$, with $s = z - z^\ast$ and $w = \Sigma V^\top s = U^\top E s$,
+\[
+  \mathrm{RMS}(E z + b) = \sqrt{H}\, \frac{U w + c_\perp}{\sqrt{\|w\|^2 + D^2}} .
+\]
+\end{proposition}
+\begin{proof}
+$E z + b = E s + c_\perp$. Since $c_\perp \perp \mathrm{range}(E)$, $\|E z + b\|^2 = \|E s\|^2 + \|c_\perp\|^2$ and
+$\|E s\| = \|w\|$. Then $\|h\|^2/H + \varepsilon = (\|w\|^2 + D^2)/H$.
+\end{proof}
+
+So the RMSNorm feature map has exactly the structure of Theorem 1: a centre $z^\ast$, a kink size $D$, half-widths
+$r^\ast_x = D / \|e_x\|$ and $r^\ast_u = D / \|e_u\|$ (columns of $E$), peak feature gain $\sqrt{H}\,\sigma_{\max}(E) / D$ at
+$z^\ast$, and the same far-field decay. The only change is which part of the bias sets the kink size: all of $b$ outside the
+range of $E$, including its mean.
+
+\begin{corollary}[comparison with LayerNorm for the same weights]
+For the same $(E, b)$, $\|c_\perp^{\mathrm{RMS}}\| \ge \|c_\perp^{\mathrm{LN}}\|$, hence
+$D_{\mathrm{RMS}} \ge D_{\mathrm{LN}}$: without centring the kink is never narrower.
+\end{corollary}
+\begin{proof}
+$\|c_\perp^{\mathrm{LN}}\| = \min_z \|P (E z + b)\| \le \min_z \|E z + b\| = \|c_\perp^{\mathrm{RMS}}\|$ because $P$ is an
+orthogonal projection.
+\end{proof}
+
+Equality needs the residual $E z^\ast_{\mathrm{RMS}} + b$ to have zero mean and the LN minimiser to coincide with it. The
+difference comes from the mean of the bias (and of the encoder columns). With the encoder bias initialised at 0, both $c_\perp$
+start at 0 and grow with training.
+
+\section{Numerical check}
+\texttt{theory/verify\_rms.py} (float64): over 300 random $(E, b, \varepsilon)$ with $\varepsilon \in \{0, 10^{-6}, 10^{-2}\}$ the
+reduction holds to $8.9 \times 10^{-16}$ (the $U w$ form to $1.8 \times 10^{-15}$); the largest singular value of
+$\partial\,\mathrm{RMS}/\partial z$ at $z^\ast$ equals $\sqrt{H}\sigma_{\max}(E)/D$ to $4 \times 10^{-9}$ (central differences);
+the corollary holds on all 300 draws.
+
+Applied to the trained LN MSE 3000 encoders (read with the RMS formula, the same $(E, b)$), the two kink sizes differ by at
+most 4\,\%: $D_{\mathrm{LN}}$ from 0.132 to 0.901 and $D_{\mathrm{RMS}}$ from 0.137 to 0.908; the trained biases have mean
+$|{\bar b}| \le 0.027$, so almost all of $\|b\|$ is already orthogonal to $\mathbf{1}$.
+
+\section{What the theory does and does not predict for trained RMSNorm surrogates}
+\begin{itemize}
+\item It predicts the same kink structure (a centre, a size $D$, slope errors of order $1/D$) at the point where
+  $\|E z + b\|$ is smallest. Since the bias starts at 0, the centre starts at the origin of $(x, u)$, as for LayerNorm.
+\item For identical weights, $D_{\mathrm{RMS}} \ge D_{\mathrm{LN}}$. On LN-trained weights the difference is small, so the theory gives
+  no reason to expect a qualitatively wider kink. Training an RMSNorm surrogate changes the weights, and the theory says
+  nothing about how.
+\item It does not predict the failure rates: these depend on the trained $D$ and on the slope errors MSE training leaves,
+  as for LayerNorm.
+\end{itemize}
+\end{document}
