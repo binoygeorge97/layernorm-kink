@@ -37,7 +37,7 @@ for _, p in PI.iterrows():
 O = pd.DataFrame(rows)
 os.makedirs(R_("out", "heldout"), exist_ok=True)
 O[O.trained].to_csv(R_("out", "heldout", "outcomes.csv"), index=False)
-sc = O[O.trained]
+sc = O[O.trained].copy(); sc["inside"] = sc.inside.astype(bool)
 n_out = int((~sc.inside).sum())
 h1 = "held" if n_out <= 2 else "failed"
 lnf = sc[(sc.family == "LN MSE 3000") & (sc.controller == "LQR fixed") & (sc.metric == "failed")]

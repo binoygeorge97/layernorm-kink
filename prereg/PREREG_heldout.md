@@ -56,3 +56,11 @@ as outside.
 | static norm | LQR sched | catastrophic | 0.0 | [0.0, 0.0] | [0.0, 0.0] | [0.0, 0.0] |
 
 ## Outcomes Part 1 (fill AFTER the held-out LQR study; do not edit anything above this line)
+
+## Outcomes Part 1 (filled 2026-11-04; docs/RESULTS_heldout.md)
+| id | outcome | numbers |
+|---|---|---|
+| H1 | failed | 6 of 12 scored cells outside their 95 % PI, all above (LN MSE 3000 fixed failed 36.2 % vs [18.2, 34.4]) |
+| H2 | failed (cell outside); ordering held | LN MSE 3000 36.2 % vs static norm 1.1 % |
+| H3 | failed | 4 of 40 LN centres outside 0.1 (max offset 0.144) |
+Families trained: LN MSE 3000, LN two-stage, static norm (the six would exceed ~3 h of CPU).
