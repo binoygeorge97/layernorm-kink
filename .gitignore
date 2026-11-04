@@ -18,3 +18,4 @@ out/**/*.npz
 out/**/*.pdf
 out/**/*.gif
 out/companion/**/main.*
+exports/
