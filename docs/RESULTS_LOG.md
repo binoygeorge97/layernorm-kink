@@ -76,3 +76,6 @@ exactness check of t2_arch invalid under chaos (documented in PREREG_arch)
   dpc_out_B01/controllers/true_plant__oracle.npz 64200edf62001f97b3ec35b08126a9d22e53b1a016586bb7d5b15c0781186545
   dpc_out_B01/controllers/true_plant__oracle__rep1.npz c9b0a7ac64806070ba7a18a1825e9125350ad8a18dafd1789a33b25d2cced55b
   dpc_out_B01/controllers/true_plant__oracle__rep2.npz 02717862ae1705c9cca3fede38dc155c4d559e0f13b36c0cd213dbadb22e3920
+2026-11-04 | B2 exactness caveat | see commit | analysis/exactness_same_traj.py on 4 linear-oracle LN MSE runs | dpc_out | along one
+stored path: one-step jvp vs m_k <= 3.7e-12 rel, sum of logs <= 1.8e-11; second rollout separates (1e-12 by steps 29-69, 1e-6 by
+51-104) | addendum prereg/ADDENDUM_2026-11-04_exactness.md (committed pre-registrations untouched)
