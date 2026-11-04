@@ -1,0 +1,45 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\title{Landing amplification for a vector state}
+\author{Definition note for the two-state plant (Q8, 4 November 2026),\\ written before the statistic is used}
+\date{}
+\begin{document}
+\maketitle
+
+\section{Scalar statistic (reference)}
+For the scalar plant, $m_k = \hat J_x(x_k,u_k) - \hat J_u(x_k,u_k) K_k$ with $K_k = -\partial u_k/\partial x_k$ (direct gain).
+From the landing step $k_\ell$ (first $k$ with $|x_k|\le 0.2$),
+$\Lambda = \max_{k_\ell \le k_1 \le k_2 < N} \sum_{k=k_1}^{k_2} \log|m_k|$, the largest contiguous sum, and
+$\Lambda^\star$ is the maximum over the 1000 training starts. Because $|\prod m_k| = \prod |m_k|$, this is the log of the
+largest gain of a contiguous stretch of the linearised closed loop through the surrogate.
+
+\section{Vector statistic}
+With $x_k \in \mathbb{R}^2$ and a scalar input, the surrogate Jacobians are $\hat J_x(x_k,u_k) \in \mathbb{R}^{2\times 2}$ and
+$\hat J_u(x_k,u_k) \in \mathbb{R}^{2}$, the policy's direct gain is the row vector $K_k = -\partial u_k / \partial x_k \in
+\mathbb{R}^{1\times 2}$ (at the current hidden state for a recurrent policy), and the closed-loop multiplier is the matrix
+\[
+  M_k = \hat J_x(x_k,u_k) - \hat J_u(x_k,u_k)\, K_k \in \mathbb{R}^{2\times 2}.
+\]
+Landing step: $k_\ell = \min\{k : \|x_k\|_\infty \le 0.2\}$ ($k_\ell = N$ if none). For one start,
+\[
+  \Lambda = \max_{k_\ell \le k_1 \le k_2 < N} \log \big\| M_{k_2} M_{k_2-1} \cdots M_{k_1} \big\|_2 ,
+  \qquad \Lambda \ge 0 \text{ by convention (empty stretch)},
+\]
+with $\|\cdot\|_2$ the spectral norm, and $\Lambda^\star = \max$ over starts. For $n_x = 1$ this is exactly the scalar
+statistic. Unlike the scalar case the log norm of a product is not the sum of the log norms (only
+$\log\|M_{k_2}\cdots M_{k_1}\| \le \sum \log\|M_k\|$), so the maximum is taken over all $O(N^2)$ stretches with running
+products; each running product is renormalised after every step and its log norm accumulated, which is exact.
+
+\section{What it is and is not}
+It is the largest finite-time growth factor of a deviation, over any contiguous stretch after landing, of the closed loop
+linearised along the surrogate rollout with the direct gain. It ignores the memory path of a recurrent policy, as the scalar
+direct-gain statistic does. A threshold for the two-state plant is not implied by the scalar threshold 12.1; if the
+statistic is used to predict traps, the threshold will be fixed and registered before the DPC runs it predicts.
+
+\section{Implementation}
+\texttt{src/plant2\_core.py}, function \texttt{vector\_lambda}: one \texttt{lax.scan} per start gives $x_k$ and $M_k$; the
+running products for all $k_1$ are advanced together for $k_2 = 0, \dots, N-1$ (only stretches with $k_1 \ge k_\ell$).
+Unit checks (tools/test\_plant2.py): with diagonal $M_k$ it equals the larger of the two scalar statistics; for a 1-D embedding it
+equals the scalar max-subarray value.
+\end{document}

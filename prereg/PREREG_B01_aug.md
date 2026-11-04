@@ -43,3 +43,5 @@ Runs predicted trapped (Lambda*_aug):
 Five largest values: LN MSE 3000 s7 r0 9.66; LN MSE 3000 s1 r2 9.12; LN MSE 3000 s7 r1 8.18; LN MSE 3000 s2 r2 7.21; LN MSE 3000 s2 r1 6.60.
 Run-level predictions: prereg/PREREG_B01_aug_predicted.csv. For comparison only (not a prediction of this file): the primary
 direct-gain rule (PREREG_B01 Part 2, 77d8455) predicts 1 of 180.
+
+Part 2 committed at 91238b4274df2c6880d1c497be2ab17f4743ceb9 (2026-11-04T17:56:34Z), after Run 6 began writing, before any Run 6 file was read.

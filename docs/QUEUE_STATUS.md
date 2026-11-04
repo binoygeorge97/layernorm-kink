@@ -3,7 +3,7 @@
 ## Q0 (partly done; A1 pending) - 2026-11-04 17:35 UTC
 - A2 timing addendum and oracle hashes: d8fffc2 (all nine hashes match). A3 Run 5 row checks and spot check: f1e7a72.
 - B3, the lr 1e-4 convergence rule for Run 4: 84ecb3a (17:19 UTC). Healthy LN MSE seeds 0, 3, 4, 6, 7; each must reach gap <= 10 % in >= 2 of 3 repeats, else P4 "not testable: not converged". Run 4 may start.
-- A1 (augmented Lambda* predictions for Run 6): computation running (3 CPU processes, ETA ~17:55 UTC). Will be labelled "committed after Run 6 began writing, before any Run 6 file was read"; first Run 6 file in dpc_out_B01: trajectories/LN__MSE__3000.npz, created 2026-11-04T16:50:14.902Z.
+- A1 DONE 17:56:34 UTC, commit 91238b4: Lambda*_aug predicts 0 of 180 Run 6 runs trapped (max 9.66, LN MSE 3000 s7 r0); the direct-gain rule (77d8455) predicts 1 (LN MSE 3000 s2 r2). Will be labelled "committed after Run 6 began writing, before any Run 6 file was read"; first Run 6 file in dpc_out_B01: trajectories/LN__MSE__3000.npz, created 2026-11-04T16:50:14.902Z.
 
 ## Q1 (done) - 17:35 UTC, commit 180ec7b
 - analysis/b01_report.py frozen: LQR rates, setpoint law, path colour, DPC per family, Lambda scatter (direct, aug), confusion matrices and outcomes R1, R2, aug rule, CLAUDE.md decision rule; non-registered model rows excluded and listed.
