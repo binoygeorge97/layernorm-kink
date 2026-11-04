@@ -89,3 +89,7 @@ linear oracle 2.5235 (slope 16.93) | corrects the "terminal weight" explanation 
 2026-11-04 | B4 Lambda*_aug retrospective (B = 0.01) | 156e71b (definition), 8b26564 (Run-6 threshold) | theory/t2_aug.py, 180 GRU
 runs, 3 CPU processes | dpc_out | zero-false-alarm thresholds > 11.21; 15/20 hits on (11.21, 13.01]; LN MSE separates, midpoint
 12.08 fixed for Run 6 before any B = 0.1 value; anchored scalar 17/20 | retrospective, secondary statistic
+2026-11-04 | oracle hashes after Runs 5a and 5b (Run 6 running) | see commit | the nine oracle files fetched again from MyDrive at
+about 17:15 UTC (modifiedTime still 3 Nov, same file IDs) | Drive | all nine parameter hashes equal to the 3 Nov values | -
+2026-11-04 | timing addendum | see commit | prereg/ADDENDUM_2026-11-04b_timing.md: 606b0d3 and 3fc3459 were committed after the Run 5
+results existed on the Drive; wording corrected to "before any Run 5 result was read" | - | - | -
