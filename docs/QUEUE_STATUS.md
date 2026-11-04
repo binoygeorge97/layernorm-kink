@@ -31,3 +31,8 @@
 ## Q6b (done) - 17:38 UTC, commit 23b5835
 - prereg/PREREG_heldout.md: H1 rates in 95 % prediction intervals (held if <= 2 of the scored cells outside), H2 LN MSE 3000 > static norm (fixed LQR), H3 all LN kink centres within 0.1.
 - Deviation from the request, flagged: the single-stage interval (20 seeds from the fixed 0-9) is NARROWER than the CI of the mean (LN MSE fixed failed [21.7, 31.3] vs CI [19.7, 33.2]); registered the two-stage interval (bootstrap 0-9, then draw 20) as primary: [18.2, 34.4]. Both shown.
+
+## Q7a-c (done) - 17:52 UTC, commits b349d6d, a9b34f2, e221377
+- Q7a: docs/theory/rmsnorm/rmsnorm_kink.pdf. RMSNorm = Theorem 1 with P = I; reduction verified to 9e-16 (theory/verify_rms.py), peak gain sqrt(H) sigma_max / D to 4e-9; for the same weights D_RMS >= D_LN (P is a contraction), differing by <= 4 % on the trained LN MSE 3000 encoders.
+- Q7b: configs "RMS MSE (3000)", "RMS J_x + J_u (two-stage)", DPC list RMS_MODELS (not in MODELS), t2core families "RMS MSE 3000", "RMS two-stage". tools/regress_norm.py: 4 existing configs bit-identical (weights and metrics), t2core identical; tools/regress_dpc.py PASSED.
+- Q7c: prereg/PREREG_rms.md Part 1: M1 centres within 0.1, M2 kink size within factor 2 of LN MSE 3000, M3 fixed-LQR failed in [13.3, 53] %, M4 two-stage lower and <= 13.3 %.
