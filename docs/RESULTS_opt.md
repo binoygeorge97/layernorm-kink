@@ -231,3 +231,23 @@ jumps by orders of magnitude at the first explosion and the update norm collapse
 runs v stays bounded and the update norm does not collapse. Needs a local script (logging hook around the existing trainer;
 no notebook change). No Colab needed: CPU ~3-4 h in the background (4 seeds vmapped, full 9000-epoch curriculum, two
 settings); on Colab it would be ~10 min but needs a notebook rebuild. I have not run it.
+
+## E7 (2026-11-04): the 8 paired comparisons in one table, raw and Holm p (POST HOC; supersedes the rounded S2(c) table)
+Per-seed median gap over the 3 repeats; Wilcoxon signed-rank over the 10 seeds (exact, two-sided; with n = 10 every p is a
+multiple of 1/1024); Holm over these 8. "Seeds won" = seeds where the first-named setting has the smaller gap.
+| comparison | per-seed median gaps | seeds won by the first | raw p | Holm p |
+|---|---|---|---|---|
+| two-stage plain vs unit | 0.04 % vs 0.94 % | 9 of 10 | 0.0195 (20/1024) | 0.0781 |
+| two-stage plain vs per-start clip 3 | 0.04 % vs 1.32 % | 10 of 10 | 0.0020 (2/1024) | 0.0156 |
+| two-stage plain vs global clip 3 | 0.04 % vs 2.14 % | 10 of 10 | 0.0020 (2/1024) | 0.0156 |
+| two-stage plain vs lr 1e-4 | 0.04 % vs 2.42 % | 10 of 10 | 0.0020 (2/1024) | 0.0156 |
+| plain vs unit | 3.63 % vs 0.94 % | 1 of 10 (unit wins 9) | 0.0039 (4/1024) | 0.0195 |
+| plain vs per-start clip 3 | 3.63 % vs 1.32 % | 2 of 10 (clip wins 8) | 0.1055 (108/1024) | 0.2109 |
+| plain vs global clip 3 | 3.63 % vs 2.14 % | 4 of 10 (global wins 6) | 0.1934 (198/1024) | 0.2109 |
+| plain vs lr 1e-4 | 3.63 % vs 2.42 % | 3 of 10 (lr 1e-4 wins 7) | 0.0645 (66/1024) | 0.1934 |
+Check of the two "0.020" values in the claims draft: both are right and are the same number by coincidence. "Two-stage vs
+unit" has RAW p = 20/1024 = 0.0195. "Unit vs plain" has raw p = 4/1024 = 0.0039 and is 4th smallest of 8, so its Holm p is
+5 x 4/1024 = 20/1024 = 0.0195. Holm-significant at 0.05: two-stage beats clip 3, global clip 3 and lr 1e-4; unit beats plain.
+Not significant after Holm: two-stage vs unit, and plain vs clip 3, global clip 3, lr 1e-4.
+(The Run 4 table's "paired against plain" p-values, from the frozen script, are the same raw values: unit 0.004, clip 0.11,
+lr 0.065, global 0.19.)

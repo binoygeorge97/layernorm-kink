@@ -337,6 +337,9 @@ T2a. CLIPPED WARM START (per-start gradients clipped to norm <= 3 = just above t
     'unit' vote; notebook block "Optimiser-side control", A100 run pending). Caveat: clipping is a diagnosis-dependent fix
     (needs to know the per-trajectory gradients can explode and a threshold tuned to the healthy scale); two-stage training
     removes the cause at the model and needs neither.
+    Update 2026-11-04 (Run 4, from scratch): clip 3 leaves 0/30 trapped (5 model-mismatch failures), unit 0/30 failed (both about
+    4x the training time); global clip 3 and lr 1e-4 rescue 3/4 and 4/4 target seeds at the cost of plain (2 and 3 traps in 30);
+    median of means does NOT work from scratch (1/4). Two-stage with the plain optimiser is still best. See RESULTS_opt.md.
 Status of the mechanism claim after T1-T3 and (i)-(iv): confirmed by intervention for all 6 repeat-0 broken pairs; the
 straight-line diagnostic separates 30/30 LN MSE runs and 15/18 slope-from-0 runs; the remaining 3 (slope s9 reps 1-2, s4
 once) fail without a spike on the straight line - unexplained, likely spikes along the actual training path.

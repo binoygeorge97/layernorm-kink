@@ -675,7 +675,7 @@ all & 180 & 20 & 17 & 0 \\
 \end{tabular}
 \end{center}
 
-The three missed traps are all slope-from-step-0 runs (seed 4 repeat 1, seed 9 repeat 1, seed 3 repeat 2) with $\Lambda^\star$ between 2.5 and 6.5: like seed 9 on the slide, their trouble lies away from the good controller. For comparison, the simpler tests catch fewer: a gradient above $10^3$ at the good controller flags 14 of the 20 traps, and $\lambda>0$ flags 16 of them but also 6 runs that were not trapped. On every one of the 180 runs the gradient at the good controller is at most $4.7\,e^{\Lambda^\star}$, so $\Lambda^\star$ also bounds the gradient from above, which $e^{N\lambda}$ did not reliably do.
+The three missed traps are all slope-from-step-0 runs (seed 4 repeat 1, seed 9 repeat 1, seed 3 repeat 2) with $\Lambda^\star$ between 2.5 and 6.5: like seed 9 on the slide, their trouble lies away from the good controller. For comparison, the simpler tests catch fewer: a gradient above $10^3$ at the good controller flags 14 of the 20 traps, and $\lambda>0$ flags 16 of them but also 6 runs that were not trapped. On every one of the 180 runs the gradient at the good controller is at most $4.7\,e^{\Lambda^\star}$, so $\Lambda^\star$ also bounds the gradient from above, which $e^{N\lambda}$ did not reliably do. The bound also holds on the 90 linear runs computed and on 89 of 90 MLP runs (one at 6.1); the factor 4.7 was read off the GRU runs, and the linear and MLP gradients were computed on three of the six families (30 runs each). It is an upper bound, not an estimate: of the 28 GRU runs with $\Lambda^\star>5$ the gradient is within a factor $10^3$ of it on 8. The separation of traps above is retrospective: the threshold was fitted on these runs.
 
 \subsection{The swap along the same runs}
 
@@ -687,18 +687,22 @@ Two seeds with almost the same peak input-slope error behave oppositely: seed 1 
 
 \subsection{The controller's memory matters}
 
-The same test for a memoryless controller, the saturated LQR $u=10\tanh(-K^\star x/10)$, gives $\Lambda^\star\le8.7$ on all 180 runs: below the threshold everywhere. Two features of the GRU make it vulnerable. Its direct gain at landing (13 to 22) is about twice the LQR gain, which narrows the safe band (Section 14.2). And its landing orbit moves: on seed 2, repeat 0, its input drifts from $-1.6$ to $-0.07$ during the landing, sweeping the crest and the arms. Prediction: a linear DPC controller would not be trapped on any of these surrogates, and for an MLP controller the test should be run on its own good controller before looking at the results.
+The same test for a memoryless controller, the saturated LQR $u=10\tanh(-K^\star x/10)$, gives $\Lambda^\star\le8.7$ on all 180 runs: below the threshold everywhere. Two features of the GRU make it vulnerable. Its direct gain at landing (13 to 22) is about twice the LQR gain, which narrows the safe band (Section 14.2). And its landing orbit moves: on seed 2, repeat 0, its input drifts from $-1.6$ to $-0.07$ during the landing, sweeping the crest and the arms. Prediction, made before the runs: a linear DPC controller would not be trapped, and the MLP's own good controller decides for the MLP. Outcome:
+\begin{itemize}
+\item The linear controller was never trapped. But its trained good controller (gain about 17) expands up to $e^{93}$ on 12 runs, and those were false alarms.
+\item The MLP was trapped on 40 runs, none of them flagged: its good controller stays below the threshold ($\Lambda^\star\le7.4$).
+\end{itemize}
 
 \subsection{What is proved and what is a statistic}
 
-For a memoryless controller, Theorem 2 is exact: the gradient is built from the multipliers as in Section 6, and an expanding stretch of length and strength $\Lambda$ forces the gradient up by about $e^{\Lambda}$. For the GRU, the multiplier with the direct gain ignores the memory, so $\Lambda^\star$ is a statistic suggested by the theorem rather than a consequence of it. Its empirical record above (17 of 20 traps, no false alarm) is what supports it.
+For a memoryless controller, Theorem 2 is exact: the gradient is built from the multipliers as in Section 6, and an expanding stretch of length and strength $\Lambda$ forces the gradient up by about $e^{\Lambda}$. For the GRU, the multiplier with the direct gain ignores the memory, so $\Lambda^\star$ is a statistic suggested by the theorem rather than a consequence of it. Its record above (17 of 20 traps, no false alarm) is a retrospective fit. In three pre-registered prospective tests it failed: MLP 0 of 40 traps flagged, linear 12 false alarms, GRU at $B=0.1$ 1 of 7 traps flagged. What it reliably gives is an upper bound on the gradient at the good controller, not its size. A trap also needs a tame region for the policy to settle in, which $\Lambda^\star$ does not see.
 
 \subsection{What this suggests for slide 17}
 
 Optional updates, if the talk is revised:
 \begin{itemize}
 \item In the notes, write the multiplier as $\hat J_x-\hat J_uK$ (the convention $u=-Kx$ of the LQR slides) and add that both too-large and wrong-signed input slopes leave the safe band.
-\item Keep $\lambda$ for the intuition, but quote $\Lambda^\star$ for the claim: 17 of 20 traps flagged, no false alarm in 160 runs.
+\item Keep $\lambda$ for the intuition. Quote $\Lambda^\star$ as an upper bound on the gradient at the good controller (180 of 180 GRU runs, 90 of 90 linear, 89 of 90 MLP) and as a retrospective separation of the GRU traps (17 of 20, no false alarm in 160, threshold fitted on these runs). Not as a trap predictor: it failed three prospective tests.
 \item Quote the gradient sizes as orders of magnitude only.
 \end{itemize}
 

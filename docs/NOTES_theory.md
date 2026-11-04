@@ -34,10 +34,17 @@ Landing window: k >= first k with |x_k| <= 0.2. Lambda(x0) = max segment sum of 
 ## Test (180 GRU runs, reference controller of each repeat through each surrogate; no DPC training)
 - LN MSE 3000: trapped (12) Lambda* 17.0-158, others (18) <= 8.6 -> complete separation. Threshold 12.1 (geometric midpoint)
   fixed there; other families: 0 false positives in 150 runs, slope-from-0 traps caught 5/8 (missed s4 rep1, s9 rep1, s3 rep2,
-  Lambda* 2.5-6.5). Overall 17/20 traps, 0/160 others.
+  Lambda* 2.5-6.5). Overall 17/20 traps, 0/160 others: a RETROSPECTIVE separation (threshold fitted on these data).
+- Prospective tests (pre-registered, threshold 12.1), all failed (added 2026-11-04):
+  - MLP (f945a5c): 0/40 traps flagged.
+  - Linear (322e353): 12 false alarms, 0 traps.
+  - GRU at B = 0.1 (77d8455): 1/7 traps flagged, 0 false alarms.
+  A trap also needs a tame region for the policy to settle in (theory.tex). That explains the linear false alarms, but it
+  was not pre-registered.
 - Earlier single-policy diagnostics: gradient > 1e3 at the reference catches 14/20 (misses LN MSE rep2 s8: 3.7; healthy rep1 s0 = 106);
   exact lyap > 0 on 16 trapped + 6 untrapped. Line spike (notes) 30/30 but needs the trapped controller.
-- ||grad L|| <= 4.7 e^{Lambda*} on all 180 runs (<= 0.16 e^{Lambda*} on LN MSE). One start carries median 84 % of ||grad||^2 on traps.
+- ||grad L|| <= 4.7 e^{Lambda*} on all 180 runs (<= 0.16 e^{Lambda*} on LN MSE). An upper bound, not tight (2026-11-04): of the 28 runs
+  with Lambda* > 5 the gradient is within 10^3 of it on 8; also 90/90 linear and 89/90 MLP runs (one at 6.1). One start carries median 84 % of ||grad||^2 on traps.
 - Swap along the same paths: Ju_hat -> B brings Lambda* below threshold on 9/12 LN MSE traps (to <= 5.7); Jx_hat -> A on 0/12.
   Exceptions s9 rep1-2, s1 rep2: state slope alone expands too (Jx_hat > 1 + B K ~ 1.2).
 - Orientation: seed 1 (peak 24.4 B) trapped 3/3, seed 7 (23.1 B) 0/3; MSE 12000 seed 2 (35.5 B) Lambda* <= 2.5.
@@ -67,8 +74,11 @@ image), L_g, segment [k_1, k_2), segment length T.
 
 ## Predictions to pre-register before the architecture runs (E-A1, E-A2)
 - Linear DPC (2 params) through LN MSE 3000: not trapped on any of the 30 runs (memoryless Lambda* <= 8.7 everywhere).
+  OUTCOME (Run 5b): held, 0/180 trapped. The trained-oracle version (P2', Lambda* up to 93) failed: 12 false alarms.
 - MLP DPC: compute Lambda* of the MLP reference controller (trained through the true plant) BEFORE looking at the MLP DPC results;
-  prediction = trapped iff Lambda* > 12.1.
+  prediction = trapped iff Lambda* > 12.1. OUTCOME (Run 5a): failed. 40 MLP traps (27 LN MSE 3000, 12 slope from 0,
+  1 MSE 12000), none flagged; the MLP oracle's gradient is tame on the trapped runs. Two-stage, no norm and static norm: 0 of 30
+  MLP runs trapped or failed each (median gaps 0.06, 0.61, 0.12 %).
 
 ## Slide 5 ("2-4 half-widths") - recomputed 2026-10-28 (arm_reach.py, 641 x 801 grid of the data box, wrong-sign region
 connected to the centre, no edge artefacts): farthest reach 1.7, 2.8, 2.9, 3.2, 4.4, 4.7, 5.5, 6.8 (seeds 6, 0, 4, 5, 3, 7, 8, 9),

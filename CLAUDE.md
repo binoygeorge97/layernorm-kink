@@ -1,5 +1,12 @@
 # LayerNorm kink: experiments for the paper — handout for Claude Code
 
+> Changed 2026-11-04 (approved by the user; details in docs/CLAIMS.md and docs/RESULTS_*.md):
+> - 1.2: the kink-centre statement holds for the ten LN MSE 3000 seeds only. It missed on LN MSE 12000 seed 4 (0.105) and on
+>   4 of 40 held-out centres (up to 0.144). The final range will be set after Run 7 (all LN families on seeds 0-29).
+> - 1.6: Lambda* is a retrospective separation of the GRU traps at B = 0.01 and an upper bound on the gradient at the good
+>   controller, not a trap predictor (three pre-registered prospective tests failed). Global clipping has been run (Run 4).
+> - 8: novelty list updated accordingly (no "predictive Lambda* test").
+
 Written 2026-11-03 at the end of a long claude.ai working session. This file is the single entry point. Read it fully
 before touching code; then read `docs/NOTES_theory.md` and `docs/NOTES_dpc_level1.md` (the science), and the task
 section you are working on. Everything else in `docs/` is background you open when a task points to it.
@@ -64,8 +71,9 @@ section you are working on. Everything else in `docs/` is background you open wh
 - Exact reduction: LN(Ez + b) = V phi(w), w = U^T Q_E (z - z*), phi(w) = sqrt(H) [w; ||c_perp||] / sqrt(||w||^2 + D^2).
   Peak feature gain sqrt(H)/D at z*; far field 1/rho across directions, 1/rho^2 along; image area independent of D
   (values bounded, slope ~ 1/D: the formal reason MSE cannot see the kink). Verified to 1e-15 (`theory/verify_thm1.py`).
-- Measured: every LN kink centre within 0.1 of (0, 0); peak input-slope error 6.7 to 201 x B (median 18.7 on LN MSE
-  3000); the narrowest, tallest kinks are seeds 1, 2, 8, 9. Value errors a few 1e-3 (up to ~0.05 at the centre).
+- Measured: every LN MSE 3000 kink centre on seeds 0-9 within 0.1 of (0, 0) (|x*| <= 0.09, |u*| <= 0.07); NOT every LN centre
+  (MSE 12000 seed 4: 0.105; held-out seeds 10-29: 4 of 40 centres at 0.13-0.14; range to be re-measured after Run 7);
+  peak input-slope error 6.7 to 201 x B (median 18.7 on LN MSE 3000); the narrowest, tallest kinks are seeds 1, 2, 8, 9. Value errors a few 1e-3 (up to ~0.05 at the centre).
 - Wrong-sign arms reach 1.7 to 6.8 half-widths on 8 seeds, 9.5 (seed 1), 32.6 (seed 2); 56 to 99 % of the wrong-sign
   area lies outside the kink ellipse (`theory/arm_reach.py`).
 
@@ -122,10 +130,15 @@ section you are working on. Everything else in `docs/` is background you open wh
 
 ### 1.6 What may and may not be claimed today
 - May: the kink is structural and closed-form; MSE-accurate LN surrogates break fixed and rescheduled LQR in the
-  predicted places; DPC through narrow-kink surrogates is trapped by an exploding, direction-chaotic gradient (not a
-  local minimum); two-stage training removes it; Lambda* predicts traps from the good controller.
-- May not (yet): "global clipping does not help" (never run); "MLP/linear behave like ..." (2-seed smoke test only);
-  anything about other plants or architectures; exact gradient magnitudes.
+  predicted places; GRU DPC through narrow-kink surrogates is trapped by an exploding, direction-chaotic gradient (not a
+  local minimum; the MLP traps without one, mechanism under study); two-stage training removes it; Lambda* separates the GRU traps at B = 0.01 retrospectively and bounds the
+  gradient at the good controller from above (180/180 GRU runs; not tight). Optimiser side (Run 4, from scratch): unit
+  per-start aggregation 0/30 failed, per-start clip 0/30 trapped (both about 4x the cost); global clip and lr 1e-4 rescue
+  most target seeds; two-stage with a plain optimiser remains best.
+- May not: "Lambda* predicts traps" (failed prospectively on the MLP, the linear policy and the GRU at B = 0.1);
+  "global clipping does not help" (false from scratch, Run 4); "every LN kink centre within 0.1"; the N <= 50 / N <= 100 /
+  batch 100 trap counts (confounded until the matched-oracle control); anything about other plants (only B = 0.1 so far);
+  exact gradient magnitudes.
 
 ----------------------------------------------------------------------------------------------------------------------
 ## 2. Repository map
@@ -442,4 +455,5 @@ Venue estimate given 3 Nov: controls (CDC/ACC/ECC) ~50-60 % now, ~70 % with Task
 TMLR ~45 % -> ~65 %; NeurIPS/ICML/ICLR main ~15 % -> 35-45 %, where a second plant (Task 2) is the hard requirement.
 Novelty that is already defensible: the mechanism (accurate predictions, slope errors break gradient-based control,
 proven by intervention), Theorem 1 with corollaries, the "when the controller reads the slopes" synthesis, and the
-predictive Lambda* test. Related work to cite is listed in `docs/HANDOFF_level1.md` and `docs/theory/theory.tex`.
+Lambda* as a retrospective separation of the GRU traps and an upper bound on the gradient at the good controller
+(not a predictor: it failed three pre-registered prospective tests, which the paper should report). Related work to cite is listed in `docs/HANDOFF_level1.md` and `docs/theory/theory.tex`.
