@@ -132,3 +132,10 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
 - H1 failed (6 of 12 cells outside, all above), H2 failed by its cell condition (ordering 36 % vs 1 % holds), H3 failed (4 of 40 LN
   centres at 0.13-0.14 along u). The qualitative result replicates and is stronger; the 10-seed intervals were too narrow.
 - Possible statement change for you: "every LN kink centre within 0.1 of (0, 0)" -> about 0.15 over 50 seeds.
+
+## Q7d (done; Run 9 prepared) - commits 608dc88, 7e5b82c, docs/RESULTS_rms.md
+- RMS MSE 3000: median r*_x 0.233, peak slope error 16.4 B, fixed LQR failed 29.5 % (LN 26.5 %); RMS two-stage 4.2 %. M2-M4 held, M1
+  failed narrowly (one centre 0.109).
+- Run 9 trap predictions committed (608dc88): Lambda* > 12.1 on 9 of 30 RMS MSE 3000 runs (seeds 1, 2, 8, every repeat), 0 of 30 two-stage.
+- Run 9 settings in docs/RESULTS_rms.md (after Run 4; MyDrive/dpc_out; ~45 min). Before you start it, the RMS path of the notebook
+  needs a QUICK test here (queued when CPU frees up; ONLY = RMS models goes through dpc_report code that has not seen these names).
