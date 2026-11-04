@@ -69,58 +69,59 @@ def fixed_points(g, lo=-4.0, hi=4.0, h=1e-3):
     return out
 
 
-sat_rows, park_rows = [], []
-for fam, (model, sur) in FAMS.items():
-    P, S0, norm, seeds, met = T.load_surrogate(fam)
-    trapped = R[(R.model == model) & R.trapped][["seed", "rep"]].values.tolist()
-    for rep in sorted({r for _, r in trapped}):
-        Cd, csd = load_dpc(model, rep); Co, cso = load_ref(ROOT_O, rep)
-        for s, r in [t for t in trapped if t[1] == rep]:
-            i = seeds.index(s); p, s0 = T.seed_slice(P, i), S0[i]
-            roll, one = make(p, s0, norm)
-            X0 = T.training_starts(s, rep); Z = jnp.zeros((len(X0), T.N_HOR))
-            k = S[(S.model == model) & (S.seed == s)].iloc[0]
-            for who, C, cs in (("DPC (trapped)", Cd, csd), ("oracle", Co, cso)):
-                c = jax.tree_util.tree_map(lambda a: jnp.asarray(a[cs.index(s)]), C)
-                Lf = lambda cc, dd: jnp.mean(jax.vmap(lambda x0, d: one(cc, x0, d))(X0, dd))
-                gtot, adj = jax.grad(Lf, argnums=(0, 1))(c, Z)
-                xs, us, xN = jax.vmap(lambda x0: roll(c, x0, jnp.zeros(T.N_HOR)))(X0)
-                pre = jax.vmap(jax.vmap(lambda x: pre_fn(c, x)))(xs)
-                mask = (jnp.abs(pre) > 2.0)
-                _, vjp = jax.vjp(lambda cc: jax.vmap(jax.vmap(lambda x: pi(cc, x)))(xs), c)
-                g_sat, = vjp(adj * mask); g_un, = vjp(adj * (~mask))
-                fl = lambda t: jnp.concatenate([jnp.ravel(a) for a in jax.tree_util.tree_leaves(t)])
-                ns, nu, nt = float(jnp.linalg.norm(fl(g_sat))), float(jnp.linalg.norm(fl(g_un))), float(jnp.linalg.norm(fl(gtot)))
-                chk = float(jnp.linalg.norm(fl(g_sat) + fl(g_un) - fl(gtot)) / max(nt, 1e-300))
-                sat_rows.append(dict(family=fam, seed=s, rep=rep, controller=who, sat_frac=float(mask.mean()), grad=nt,
-                                     g_unsat=nu, g_sat=ns, share_unsat=nu / (nu + ns), split_check=chk))
-                if who != "DPC (trapped)":
-                    continue
-                _, _, xNt = jax.vmap(lambda x0: roll(c, x0, jnp.zeros(T.N_HOR), True))(X0)
-                xN, xNt = np.asarray(xN), np.asarray(xNt)
-                fs = fixed_points(lambda x: T.F_point(p, x, pi(c, x), s0, norm))
-                ft = fixed_points(lambda x: T.A_TRUE * x + T.B_TRUE * pi(c, x))
-                slope = T.slopes(p, s0, norm)
-                desc = []
-                for x, dg in fs:
-                    u = float(pi(c, x)); ju = float(slope(x, u)[2]) / T.B_TRUE
-                    d = float(np.hypot((x - k.zmin_x) / k.rstar_x, (u - k.zmin_u) / k.rstar_u))
-                    tm = min((abs(x - xt) for xt, _ in ft), default=np.inf)
-                    desc.append(dict(x=x, u=u, stable=abs(dg) < 1, d_half=d, Ju_over_B=ju, true_fp_within_0p01=tm < 0.01))
-                st = [q for q in desc if q["stable"]]
-                med, medt = float(np.median(xN)), float(np.median(xNt))
-                park_rows.append(dict(family=fam, seed=s, rep=rep, park_sur_median=med, share_at_median=float(np.mean(np.abs(xN - med) < 0.05)),
-                                      park_true_median=medt, share_true_at_median=float(np.mean(np.abs(xNt - medt) < 0.05)),
-                                      n_fp_sur=len(fs), n_fp_true=len(ft),
-                                      stable_fp_sur=" ".join(f"{q['x']:+.3f}" for q in st),
-                                      stable_fp_true=" ".join(f"{x:+.3f}" for x, dg in ft if abs(dg) < 1),
-                                      fp_sur_d_half=" ".join(f"{q['d_half']:.1f}" for q in st),
-                                      fp_sur_Ju_over_B=" ".join(f"{q['Ju_over_B']:.2f}" for q in st),
-                                      fp_sur_matches_true=" ".join(str(q["true_fp_within_0p01"]) for q in st),
-                                      kink_x=k.zmin_x, kink_u=k.zmin_u, rstar_x=k.rstar_x, rstar_u=k.rstar_u))
-                q = park_rows[-1]
-                print(f"{fam:15s} s{s} r{rep}: park sur {q['park_sur_median']:+.3f} ({q['share_at_median']:.2f}) true {q['park_true_median']:+.3f} | "
-                      f"stable fp sur [{q['stable_fp_sur']}] d [{q['fp_sur_d_half']}] Ju/B [{q['fp_sur_Ju_over_B']}] true fp [{q['stable_fp_true']}] | "
-                      f"sat {sat_rows[-1]['sat_frac']:.3f} share_unsat {sat_rows[-1]['share_unsat']:.3f} (split check {sat_rows[-1]['split_check']:.1e})", flush=True)
-            pd.DataFrame(sat_rows).to_csv(os.path.join(OUT, "mlp_saturation.csv"), index=False)
-            pd.DataFrame(park_rows).to_csv(os.path.join(OUT, "mlp_parking.csv"), index=False)
+if __name__ == "__main__":
+    sat_rows, park_rows = [], []
+    for fam, (model, sur) in FAMS.items():
+        P, S0, norm, seeds, met = T.load_surrogate(fam)
+        trapped = R[(R.model == model) & R.trapped][["seed", "rep"]].values.tolist()
+        for rep in sorted({r for _, r in trapped}):
+            Cd, csd = load_dpc(model, rep); Co, cso = load_ref(ROOT_O, rep)
+            for s, r in [t for t in trapped if t[1] == rep]:
+                i = seeds.index(s); p, s0 = T.seed_slice(P, i), S0[i]
+                roll, one = make(p, s0, norm)
+                X0 = T.training_starts(s, rep); Z = jnp.zeros((len(X0), T.N_HOR))
+                k = S[(S.model == model) & (S.seed == s)].iloc[0]
+                for who, C, cs in (("DPC (trapped)", Cd, csd), ("oracle", Co, cso)):
+                    c = jax.tree_util.tree_map(lambda a: jnp.asarray(a[cs.index(s)]), C)
+                    Lf = lambda cc, dd: jnp.mean(jax.vmap(lambda x0, d: one(cc, x0, d))(X0, dd))
+                    gtot, adj = jax.grad(Lf, argnums=(0, 1))(c, Z)
+                    xs, us, xN = jax.vmap(lambda x0: roll(c, x0, jnp.zeros(T.N_HOR)))(X0)
+                    pre = jax.vmap(jax.vmap(lambda x: pre_fn(c, x)))(xs)
+                    mask = (jnp.abs(pre) > 2.0)
+                    _, vjp = jax.vjp(lambda cc: jax.vmap(jax.vmap(lambda x: pi(cc, x)))(xs), c)
+                    g_sat, = vjp(adj * mask); g_un, = vjp(adj * (~mask))
+                    fl = lambda t: jnp.concatenate([jnp.ravel(a) for a in jax.tree_util.tree_leaves(t)])
+                    ns, nu, nt = float(jnp.linalg.norm(fl(g_sat))), float(jnp.linalg.norm(fl(g_un))), float(jnp.linalg.norm(fl(gtot)))
+                    chk = float(jnp.linalg.norm(fl(g_sat) + fl(g_un) - fl(gtot)) / max(nt, 1e-300))
+                    sat_rows.append(dict(family=fam, seed=s, rep=rep, controller=who, sat_frac=float(mask.mean()), grad=nt,
+                                         g_unsat=nu, g_sat=ns, share_unsat=nu / (nu + ns), split_check=chk))
+                    if who != "DPC (trapped)":
+                        continue
+                    _, _, xNt = jax.vmap(lambda x0: roll(c, x0, jnp.zeros(T.N_HOR), True))(X0)
+                    xN, xNt = np.asarray(xN), np.asarray(xNt)
+                    fs = fixed_points(lambda x: T.F_point(p, x, pi(c, x), s0, norm))
+                    ft = fixed_points(lambda x: T.A_TRUE * x + T.B_TRUE * pi(c, x))
+                    slope = T.slopes(p, s0, norm)
+                    desc = []
+                    for x, dg in fs:
+                        u = float(pi(c, x)); ju = float(slope(x, u)[2]) / T.B_TRUE
+                        d = float(np.hypot((x - k.zmin_x) / k.rstar_x, (u - k.zmin_u) / k.rstar_u))
+                        tm = min((abs(x - xt) for xt, _ in ft), default=np.inf)
+                        desc.append(dict(x=x, u=u, stable=abs(dg) < 1, d_half=d, Ju_over_B=ju, true_fp_within_0p01=tm < 0.01))
+                    st = [q for q in desc if q["stable"]]
+                    med, medt = float(np.median(xN)), float(np.median(xNt))
+                    park_rows.append(dict(family=fam, seed=s, rep=rep, park_sur_median=med, share_at_median=float(np.mean(np.abs(xN - med) < 0.05)),
+                                          park_true_median=medt, share_true_at_median=float(np.mean(np.abs(xNt - medt) < 0.05)),
+                                          n_fp_sur=len(fs), n_fp_true=len(ft),
+                                          stable_fp_sur=" ".join(f"{q['x']:+.3f}" for q in st),
+                                          stable_fp_true=" ".join(f"{x:+.3f}" for x, dg in ft if abs(dg) < 1),
+                                          fp_sur_d_half=" ".join(f"{q['d_half']:.1f}" for q in st),
+                                          fp_sur_Ju_over_B=" ".join(f"{q['Ju_over_B']:.2f}" for q in st),
+                                          fp_sur_matches_true=" ".join(str(q["true_fp_within_0p01"]) for q in st),
+                                          kink_x=k.zmin_x, kink_u=k.zmin_u, rstar_x=k.rstar_x, rstar_u=k.rstar_u))
+                    q = park_rows[-1]
+                    print(f"{fam:15s} s{s} r{rep}: park sur {q['park_sur_median']:+.3f} ({q['share_at_median']:.2f}) true {q['park_true_median']:+.3f} | "
+                          f"stable fp sur [{q['stable_fp_sur']}] d [{q['fp_sur_d_half']}] Ju/B [{q['fp_sur_Ju_over_B']}] true fp [{q['stable_fp_true']}] | "
+                          f"sat {sat_rows[-1]['sat_frac']:.3f} share_unsat {sat_rows[-1]['share_unsat']:.3f} (split check {sat_rows[-1]['split_check']:.1e})", flush=True)
+                pd.DataFrame(sat_rows).to_csv(os.path.join(OUT, "mlp_saturation.csv"), index=False)
+                pd.DataFrame(park_rows).to_csv(os.path.join(OUT, "mlp_parking.csv"), index=False)
