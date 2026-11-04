@@ -108,3 +108,8 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
   prereg/PROTOCOL_trap_predictor.md, fixed before computing. Linear set running (~4.5 min per (family, repeat) under load);
   MLP chained after it; both GRU sets chained after the R3 arms job. Expected finish: several hours (GRU units are the slow part).
   The freeze commit will come before the Run 8 pre-registration.
+
+## Q8 milestone (ii) (done) - tools/plant2_quick.py, out/plant2_quick
+- All six families x 2 seeds ran end to end on the P1 plant (surrogates scaled 0.1: 300 / 1200 steps): Level 1 + ellipsoid kink
+  metrics, mini LQR study, short DPC through surrogate and true plant, vector Lambda*. The LQR failure rates (50-100 %) are not
+  meaningful with 10x shorter training; tools/plant2_lqr_sanity.py (one full 3000-step static-norm surrogate) checks the LQR code.
