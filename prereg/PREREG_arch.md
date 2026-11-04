@@ -138,3 +138,18 @@ Linear run-level predictions appended to `prereg/PREREG_arch_predicted.csv` (arc
 arch = "linear_Kstar", are unchanged).
 
 Part B (linear) registered at commit 322e3530e5b185977bcb025379baa68277159a15 (2026-11-03), before any linear controller was trained through a surrogate.
+
+## Outcomes, Parts A and B (filled 2026-11-04 from Run 5; details docs/RESULTS_arch.md)
+Robust-aggregation rows written by mistake in Run 5 (RUN_ROBUST left True, repeat 0) are excluded from every count.
+| id | outcome | numbers |
+|---|---|---|
+| P1 | failed | MLP: 0 predicted, 40 of 180 trapped (27 LN MSE 3000, 12 slope from 0, 1 MSE 12000); hits 0/40, false alarms 0/140 |
+| A1 | partly | listed seeds all fail (LN MSE 1, 2, 8, 9; slope from 0 2, 3, 9), but the MLP also fails on LN MSE 0, 3, 5, 6, 7 and slope from 0 4, 8; two-stage and kink-free none; every failure trapped |
+| P2 | held | linear: 0 of 180 trapped |
+| P2' | failed | linear: 12 predicted (LN MSE 3000 seeds 1, 2, 8, 9), 0 trapped: 12 false alarms (6.7 % > 5 %) |
+| A2 | held | linear: no failed run on the GRU-trapped seeds |
+| A3 | partly | healthy MLP close to the LQR line (slope 9.2-11.1 at x = 0.5); trapped MLP policies near-constant saturated inputs, not a kink-band notch |
+| A4 | failed (narrowly) | LN MSE 3000: 9 of 10 seeds within 10 % (seed 1 -14.9 %) |
+| A5 | not scored | D11 data not fetched |
+P1/A1 conflict (registered note): the outcome sides with A1, "the trap belongs to the surrogate", not with P1. P2/P2' conflict:
+P2 held, P2' failed.

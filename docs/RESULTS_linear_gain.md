@@ -5,7 +5,12 @@ Script `analysis/linear_gain.py`; figure `out/figs/fig_linear_gain.png`; scan `o
 The linear controller is u = 10 tanh(-K x / 10). Near x = 0 it is the line -K x, but it bends over gradually: at K = 10.29 it
 gives u = -7.7 at x = 1, where the saturated LQR clip(-10.29 x, +-10) already gives -10 (figure, left, dotted vs grey).
 Most training starts (x0 ~ U[-3, 3]) begin in the range where the optimal input is at or near the limit, so DPC steepens the
-slope at the origin to push the input to the limit sooner, accepting a too-aggressive response near zero. Scanning the gain
+slope at the origin to push the input to the limit sooner, accepting a too-aggressive response near zero. Where the curves
+cross (checked numerically and against the figure, 4 Nov, B5): the tanh shape at the LQR slope, 10 tanh(1.03 x), lies on the
+clipped line near 0 and falls visibly below it from about |x| = 0.3 (3 % below at 0.3, 23 % below at 1: -7.74 against -10). The trained shape
+10 tanh(1.69 x) lies ABOVE the clipped line (larger |u|) out to |x| = 0.876 and below it beyond (u = -9.34 at x = 1,
+-9.87 at x = 1.5, where the clip gives -10): it trades a too-aggressive input for |x| < 0.88 against a still slightly
+unsaturated one further out. Scanning the gain
 on the true plant (1000 training starts of seed 0 repeat 0, the DPC loss of dpc_core; figure, right): the clipped line is best at
 K = 10.25 (the LQR gain), the tanh shape at K = 17.00, the value training converges to (16.70-17.00 over the 30 oracles). Over the
 small starts only (|x0| <= 0.3, no saturation, n = 90) the tanh optimum falls back to K = 10.5. The finite horizon is not the
