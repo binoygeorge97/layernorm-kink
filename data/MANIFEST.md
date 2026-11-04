@@ -37,3 +37,5 @@ the claude.ai project under `claude/theory/results/`; Task 0 regenerates them.
 ## companion/lqr_study.csv
 11 880 rows: 6 families x 10 seeds x 11 setpoints x 9 starts x 2 controllers (fixed, rescheduled), from
 companion/run_lqr_study.py. Rates exclude starts within 0.5 of the setpoint (880 runs per family per controller).
+
+- data/run6_B01/controllers_check/ (not in git): true_plant__oracle{,__rep1,__rep2}.npz copied read-only from MyDrive/dpc_out_B01/controllers on 2026-11-04 for the oracle parameter-hash check (docs/RESULTS_B01.md, tools/hash_params.py).

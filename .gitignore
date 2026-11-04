@@ -19,3 +19,6 @@ out/**/*.pdf
 out/**/*.gif
 out/companion/**/main.*
 exports/
+
+# read-only copies of Drive files made for checks (listed in data/MANIFEST.md)
+data/**/controllers_check/
