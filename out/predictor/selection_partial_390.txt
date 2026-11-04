@@ -1,0 +1,7 @@
+runs with warm-start result: 390 of 720
+candidate  eligible  worst_hit_rate  pooled_hit_rate  pooled_fa_rate  gru_B001_hits  gru_B001_traps  gru_B001_fa  gru_B001_neg  mlp_hits  mlp_traps  mlp_fa  mlp_neg  linear_hits  linear_traps  linear_fa  linear_neg  gru_B01_hits  gru_B01_traps  gru_B01_fa  gru_B01_neg
+       C1     False            0.55            0.678           0.033             12              12            1            38        22         40       1       70            0             0          0         180             6              7           9           43
+       C2     False            0.55            0.627           0.033             10              12            1            38        22         40       1       70            0             0          0         180             5              7           9           43
+       B0     False            0.00            0.220           0.036             12              12            0            38         0         40       0       70            0             0         12         180             1              7           0           43
+
+NO CANDIDATE MET THE CRITERION (false-alarm rate <= 5 % in every set). Nothing frozen; decision needed.
