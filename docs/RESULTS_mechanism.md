@@ -52,3 +52,21 @@ update points uphill against the current gradient (cos(Delta, -g) < 0), and the 
 first-order prediction (e.g. LN MSE s8 epoch 20: +0.0509 actual, +0.0507 predicted). On healthy pairs the update points
 downhill. Whether the uphill update is the Adam moments carrying the exploded epoch-0/1 gradient is not tested here
 (the earlier moment-reset test, RESULTS_opt item 3, argues against a pure moment explanation).
+
+## (ii) 2 x 2 warm start: first step plain or per-start clip 3, later steps plain or clip 3 (analysis/warmstart_2x2.py)
+100 epochs at N = 200 from the repeat-0 oracle GRU; expelled = true cost > 1.10 x epoch 0 at any logged epoch 10-100
+(PREREG_opt rule). Diagonal cells: the harness runs warmstart_plain.csv / warmstart_clip3.csv (same code path).
+| pair | plain > plain | clip3 > plain | plain > clip3 | clip3 > clip3 |
+|---|---|---|---|---|
+| LN MSE s1 (broken) | expelled | expelled | expelled | stays |
+| LN MSE s2 (broken) | stays | expelled | stays | stays |
+| LN MSE s8 (broken) | expelled | expelled | expelled | stays |
+| LN MSE s9 (broken) | expelled | expelled | expelled | stays |
+| slope s2 (broken) | expelled | expelled | expelled | stays |
+| slope s9 (broken) | expelled | expelled | stays | stays |
+| 4 healthy pairs | stay | stay | stay | stay |
+| broken pairs expelled (of 6) | 5 | 6 | 4 | 0 |
+Answer to "first kick or later steps?": neither alone. Clipping only the first step and then running plain AdamW expels every
+broken pair (6 of 6). Clipping every step except the first expels 4 of 6. Only clipping every step keeps all six. With the
+R3 result below (AdamW without momentum keeps most broken pairs), one candidate reading is that a single unclipped,
+exploded step contaminates the momentum that drives later updates. Numbers only; not tested further here.
