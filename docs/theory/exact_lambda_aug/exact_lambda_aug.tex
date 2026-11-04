@@ -1,0 +1,50 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb}
+\title{Exact-memory landing amplification for the GRU controller:\\ the augmented-state operator norm\\[2pt]\large retrospective statistic, written 4 November 2026 before computing it}
+\author{}\date{}
+\begin{document}\maketitle
+
+\section*{Closed loop with memory}
+The GRU reference controller has hidden state $h_k\in\mathbb R^{64}$; with the scalar state $x_k$ the closed loop through the
+surrogate $\hat F$ is a map of the augmented state $z_k=(x_k,h_k)\in\mathbb R^{65}$:
+\[
+h_{k+1}=g(h_k,x_k),\qquad u_k=10\tanh\!\big(w^\top h_{k+1}+c\big),\qquad x_{k+1}=\hat F(x_k,u_k),\qquad
+z_{k+1}=\Psi(z_k).
+\]
+Its Jacobian $\Phi_k=\partial\Psi/\partial z\,(z_k)\in\mathbb R^{65\times65}$ contains every path through the memory; the
+scalar multiplier $m_k=\hat J_x-\hat J_uK_k$ of the pre-registered $\Lambda^\star$ is the $(x,x)$ entry with the direct gain
+$K_k=-\partial u_k/\partial x_k|_{h_k}$ only. The sensitivity of $z_{k_2}$ to $z_{k_1}$ is the ordered product
+\[
+\Phi(k_2,k_1)=\Phi_{k_2-1}\Phi_{k_2-2}\cdots\Phi_{k_1}.
+\]
+
+\section*{Why it is not additive}
+In the scalar case $\log|\prod m_k|=\sum\log|m_k|$, so the largest growth over contiguous stretches is a maximum-subarray
+problem over the numbers $\log|m_k|$ and is found in one pass. For matrices only
+$\log\|\Phi(k_2,k_1)\|_2\le\sum_{k=k_1}^{k_2-1}\log\|\Phi_k\|_2$ holds, with equality only when the leading singular directions
+of consecutive factors are aligned; the growth of a stretch depends on the order and the directions of its factors, so there is
+no per-step number that can be summed, and the maximum over all stretches $[k_1,k_2)$ needs every product, $O(N^2)$ of them per
+start ($N=200$, $65\times65$ matrices, 1000 starts, 180 runs: not affordable on a CPU).
+
+\section*{Definition}
+The stretch is therefore anchored at the landing step $k_\mathrm{land}$ (first $k$ with $|x_k|\le0.2$) and maximised over its
+end:
+\[
+\Lambda_{\mathrm{aug}}(x_0)=\max_{k_\mathrm{land}<k\le N}\ \log\big\|\Phi(k,k_\mathrm{land})\big\|_2,\qquad
+\Lambda^\star_{\mathrm{aug}}=\max_{x_0}\Lambda_{\mathrm{aug}}(x_0)
+\]
+over the 1000 training starts of the repeat ($\Lambda_{\mathrm{aug}}=0$ for a start that never lands, and the maximum includes
+the empty stretch, so $\Lambda_{\mathrm{aug}}\ge0$ as for $\Lambda^\star$). The running product is formed in the same pass as the
+rollout (reset to $I$ at $k_\mathrm{land}$), and $\|\cdot\|_2$ is the exact largest singular value (SVD) at every step. For
+comparison the same anchoring is applied to the scalar multiplier, $\Lambda_{\mathrm{scal,land}}(x_0)=\max_k\sum_{j=k_\mathrm{land}}^{k-1}\log|m_j|$,
+which separates the effect of the memory from the effect of anchoring the stretch.
+
+\section*{Use}
+Retrospective on the 180 GRU runs at $B=0.01$ (trap labels known). Reported: the interval of thresholds with no false alarm on
+the 160 non-trapped runs and the hit rate across it. Threshold for a prospective use (Run 6, $B=0.1$): the geometric midpoint
+of the largest non-trapped and the smallest trapped $\Lambda^\star_{\mathrm{aug}}$ on LN MSE 3000 at $B=0.01$, the rule of the
+pre-registered $12.1$; if LN MSE 3000 does not separate, the geometric midpoint of the zero-false-alarm interval over all 180
+runs at $B=0.01$ (its lower end and the smallest trapped value above it). Fixed before any $B=0.1$ value of this statistic is
+computed.
+\end{document}
