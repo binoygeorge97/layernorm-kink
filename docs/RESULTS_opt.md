@@ -103,3 +103,54 @@ consistent, yet lr 1e-3 AdamW steps climb), this points to the STEP SIZE relativ
 controller: a 1e-3 relative step per weight lands where the surrogate's gradient field is chaotic, a 1e-4 step does not. It
 does not answer pre-registered P4 (lr 1e-4 from scratch does not rescue), which is about reaching the good controller from a
 random initialisation (Colab Run 4).
+
+---------------------------------------------------------------------------------------------------------------------------
+## Run 4: optimiser baselines from scratch (added 2026-11-04; frozen analysis 218cbbe, run unchanged)
+Data: MyDrive/dpc_out after Run 4 (dpc_results.csv modified 21:52:41Z, dpc_diag.csv 21:53:06Z), copied to data/run4.
+Command: `LK_OUT=out/run4 python analysis/opt_report.py data/run4` (outputs out/run4/opt/).
+Checks:
+- Every Run 4 setting has 30 rows (10 seeds x 3 repeats), with no duplicates.
+- The 210 pre-existing result rows and 180 diag rows are bit-identical to the pre-Run-4 backup (be5e1ca).
+- The GRU oracle files are unchanged on Drive (modified 21-22 Oct, sizes equal to the local copies).
+
+GRU through the LN MSE 3000 surrogates; rescued = not failed in >= 2 of 3 repeats, over target seeds 1, 2, 8, 9.
+| setting | failed / 30 | trapped / 30 | median gap | best-seed gap | wall time (s per seed) | target seeds rescued |
+|---|---|---|---|---|---|---|
+| plain | 13 | 12 | 4.05 % | 0.17 % | 28 | 0 |
+| per-start clip 3 | 5 | 0 | 1.23 % | 0.13 % | 120 | 3 (not s9) |
+| unit per-start | 0 | 0 | 0.94 % | 0.15 % | 121 | 4 |
+| global clip 3 | 5 | 2 | 1.98 % | 0.18 % | 28 | 3 (not s1) |
+| median of means | 10 | 8 | 1.85 % | 0.18 % | 120 | 1 (s9) |
+| batch 100 | 15 | 11 | 12.4 % | 0.21 % | 6 | 0 |
+| lr 1e-4 | 3 | 3 | 2.16 % | 0.23 % | 28 | 4 |
+| N <= 50 | 17 | 15 | 12.9 % | 2.93 % | 6 | 0 |
+| N <= 100 | 15 | 12 | 8.23 % | 0.19 % | 10 | 0 |
+| two-stage, plain (reference) | 0 | 0 | 0.04 % | 0.006 % | 28 | 4 |
+The failed per-start-clip runs are not trapped: they are model mismatch, gaps 20-55 %, on seeds 5, 8 and 9.
+
+Pre-registered outcomes (PREREG_opt, c41967c; convergence rule 84ecb3a):
+| id | prediction | outcome | numbers |
+|---|---|---|---|
+| P1 | per-start clip 3 rescues >= 3 of 4 | held | 3 of 4 (seeds 1, 2, 8; seed 9 failed in 2 of 3) |
+| P2a | global clip 3 rescues <= 1 | failed | 3 of 4 (seed 1 failed in 2 of 3); 2 traps in 30 |
+| P3a | median of means rescues >= 3 | failed | 1 of 4 (seed 9); 8 traps in 30 |
+| P4 convergence | healthy seeds 0, 3, 4, 6, 7 reach <= 10 % in >= 2 of 3 | converged | 15 of 15 healthy runs <= 10 % (largest gap 2.3 %) |
+| P4 | lr 1e-4 rescues <= 1 | failed | 4 of 4; 3 traps in 30 (s8 r0, s2 r2, s9 r2) |
+| P5a | N <= 50: <= 3 of 30 trapped | failed | 15 of 30 trapped (more than plain, 12) |
+| P5b | N <= 50 worse than two-stage plain | held | median gap 12.9 % vs 0.04 % |
+| U1 | batch 100: no prediction | reported | 15 failed, 11 trapped, 0 of 4 targets rescued |
+Paired against plain (per-seed median gap, Wilcoxon over 10 seeds): unit better on 9 of 10 (p = 0.004), clip 3 8/10
+(p = 0.11), lr 1e-4 7/10 (p = 0.065), median of means 7/10 (p = 0.084), global clip 6/10 (p = 0.19); two-stage 10/10 (p = 0.002).
+
+Reading:
+- Bounding each start's influence works from scratch. Unit per-start gradients rescue all four target seeds with no trap
+  and no failure in 30 runs. Per-start clip 3 leaves no trap; its 5 failures are model mismatch.
+- Two predictions based on "one start sets the direction" failed. Global clipping rescues 3 of 4, and a learning rate 10
+  times smaller rescues all 4 (after converging, by the registered rule). So the size of the steps matters too, against
+  P2a and P4 and the warm-start results (where lr 1e-4 also stayed).
+- Median of means mostly fails (1 of 4), as the B2 diagnosis explained: many starts explode at once.
+- Truncating the horizon to N <= 50 or <= 100 does not avoid the trap: 15 and 12 trapped. P5a failed.
+- Minibatches of 100 make it worse: 15 failed.
+- The repair on the surrogate side remains the strongest: two-stage training, 0 of 30 failed.
+Committed claims affected (your decision; not changed): CLAIMS.md / slides that say "global clipping does not help" (CLAUDE.md
+1.6 lists it as not yet claimable) and anything implying a smaller learning rate does not help.

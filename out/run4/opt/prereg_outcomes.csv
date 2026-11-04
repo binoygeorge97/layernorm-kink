@@ -1,0 +1,9 @@
+id,outcome,numbers
+P1,held,"3 of 4 target seeds rescued (predicted >= 3); s1: 0/3 failed, s2: 0/3 failed, s8: 1/3 failed, s9: 2/3 failed"
+P2a,failed,"3 of 4 target seeds rescued (predicted <= 1); s1: 2/3 failed, s2: 0/3 failed, s8: 0/3 failed, s9: 1/3 failed"
+P3a,failed,"1 of 4 target seeds rescued (predicted >= 3); s1: 3/3 failed, s2: 2/3 failed, s8: 2/3 failed, s9: 1/3 failed"
+P4 convergence (84ecb3a),converged,"s0: 3/3 <= 10 %, s3: 3/3 <= 10 %, s4: 3/3 <= 10 %, s6: 3/3 <= 10 %, s7: 3/3 <= 10 %; healthy runs <= 10 %: 15 of 15; gaps % s0r0 1.1 s0r1 1.7 s0r2 1.2 s3r0 0.5 s3r1 0.4 s3r2 0.5 s4r0 0.3 s4r1 0.3 s4r2 0.3 s6r0 2.3 s6r1 2.0 s6r2 1.3 s7r0 0.3 s7r1 0.2 s7r2 0.2"
+P4,failed,"4 of 4 target seeds rescued (predicted <= 1); s1: 0/3 failed, s2: 1/3 failed, s8: 1/3 failed, s9: 1/3 failed"
+P5a,failed,15 of 30 trapped (predicted <= 3; plain 12/30)
+P5b,held,"median gap N <= 50 12.93 % vs two-stage plain 0.04 % (n = 30, 30)"
+U1,reported (no prediction),"batch 100: 15 failed, 11 trapped of 30; target seeds rescued 0 of 4"

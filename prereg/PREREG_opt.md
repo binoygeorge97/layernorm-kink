@@ -83,3 +83,14 @@ norms of 1e10+ differ between machines, CLAUDE.md pitfall 9); healthy pairs shou
 | P1, P2a, P3a, P4, P5 | pending | need Colab Run 4 (from scratch) |
 
 Registered at commit c41967c7efc27fa9778f575334c01b0d323502e9 (2026-11-03), before any optimiser-baseline result existed.
+
+## Outcomes, from scratch (filled 2026-11-04 from Run 4 with the frozen analysis/opt_report.py, 218cbbe; docs/RESULTS_opt.md)
+| id | outcome | numbers |
+|---|---|---|
+| P1 | held | per-start clip 3 rescued 3 of 4 target seeds (1, 2, 8) |
+| P2a | failed | global clip 3 rescued 3 of 4 |
+| P3a | failed | median of means rescued 1 of 4 |
+| P4 | failed (convergence condition met: 15 of 15 healthy runs <= 10 %) | lr 1e-4 rescued 4 of 4 |
+| P5a | failed | N <= 50: 15 of 30 trapped |
+| P5b | held | N <= 50 median gap 12.9 % vs two-stage plain 0.04 % |
+| U1 | reported | batch 100: 15 failed, 11 trapped of 30 |

@@ -1,0 +1,11 @@
+setting,seed 1,seed 2,seed 8,seed 9,rescued
+plain,not,not,not,not,0
+clip 3,rescued,rescued,rescued,not,3
+unit,rescued,rescued,rescued,rescued,4
+global clip 3,not,rescued,rescued,rescued,3
+mom,not,not,not,rescued,1
+batch 100,not,not,not,not,0
+lr 1e-4,rescued,rescued,rescued,rescued,4
+N <= 50,not,not,not,not,0
+N <= 100,not,not,not,not,0
+"two-stage, plain (reference)",rescued,rescued,rescued,rescued,4
