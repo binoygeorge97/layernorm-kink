@@ -89,3 +89,16 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
 - If a file ever does shrink: in Google Drive (web), right-click the file -> File information -> Manage versions (or
   "Manage versions" in the menu), download the version dated 22 Oct (kept 30 days), and either upload it as a new version
   there or send it to me; nothing needs deleting. The local backup above is a second copy.
+
+## Notebook a42bb3b QUICK-tested (18:3x UTC): ready for Run 7
+- tools/run_quick.py, CPU, 745 s, no errors. Against the QUICK run of the earlier notebook: all 16 controller files, dpc_curves.csv
+  and dpc_diag.csv bit-identical; dpc_results.csv identical except the wall-time column train_s_per_seed; surrogates.csv now
+  keeps all 8 model rows (the earlier run predates the ce89f6f merge fix), the 4 rows in common identical.
+
+## R2 (done, commit 39b1939), R4 (draft, commit 562ba04)
+- R2: docs/RESULTS_lambda_posthoc.md. Within LN MSE 3000, Lambda* AUC: GRU B = 0.01 1.00, GRU B = 0.1 0.81, MLP 0.36. Zero-FA
+  intervals do not transfer. MLP traps occur with a tame gradient at the MLP oracle; linear false alarms have exploding gradients
+  (1e27-1e34, one start 94-100 %) and no trap.
+- R4: out/claims_lambda_draft.md: old -> new for CLAIMS.md (T1, T2, T4, T5, T6 -> T6/T7a/T8), NOTES_theory.md, theory.tex
+  (summary, item 9, remark after Cor. 6), background note (4 places); companions: no hit; slides 17-19: no Lambda* text (deck read),
+  3 proposed slide-fix entries (15-17) for slides 22-23 that Run 5 contradicts. NOT applied.
