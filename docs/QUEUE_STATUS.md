@@ -91,6 +91,7 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
   there or send it to me; nothing needs deleting. The local backup above is a second copy.
 
 ## Notebook a42bb3b QUICK-tested (18:3x UTC): ready for Run 7
+- Correction 2026-11-04 (S1, docs/HASH_AUDIT.md): "a42bb3b" here and in the R1 entry above is not a commit; the notebook meant is ca00843 (18:06:19Z). The Run 9 notebook is cd6eb9e.
 - tools/run_quick.py, CPU, 745 s, no errors. Against the QUICK run of the earlier notebook: all 16 controller files, dpc_curves.csv
   and dpc_diag.csv bit-identical; dpc_results.csv identical except the wall-time column train_s_per_seed; surrogates.csv now
   keeps all 8 model rows (the earlier run predates the ce89f6f merge fix), the 4 rows in common identical.
@@ -164,3 +165,9 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
   messages earlier, wrongly) run unchanged.
 - Trapped of 30: plain 12, clip 3 0, unit 0, global clip 2, mom 8, batch 100 11, lr 1e-4 3, N<=50 15, N<=100 12; two-stage 0.
 - P1 held; P2a, P3a, P4 (converged), P5a failed; P5b held.
+
+## S1 hash audit (done)
+- docs/HASH_AUDIT.md: every hash quoted in prereg/docs/out and in my messages, checked against git, with commit time, files, and
+  (for pre-registrations and frozen scripts) the first data file time. Three wrong hashes: 4ac35d4 -> 218cbbe (messages),
+  a42bb3b -> ca00843 (messages, this file; dated note added), 1459b51 -> f9208f8 (RESULTS_LOG line 69; correction appended).
+- Two pre-registration parts were committed after their run began writing (B01_aug Part 1/2, both labelled so already).
