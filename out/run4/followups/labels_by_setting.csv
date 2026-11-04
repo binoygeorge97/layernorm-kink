@@ -1,0 +1,11 @@
+setting,runs,failed,trapped,failed_runs,trapped_runs,healthy_trapped,healthy_trapped_runs,wall_s_per_seed
+plain,30,13,12,s1r0 s1r1 s1r2 s2r0 s2r1 s2r2 s5r0 s8r0 s8r1 s8r2 s9r0 s9r1 s9r2,s1r0 s1r1 s1r2 s2r0 s2r1 s2r2 s8r0 s8r1 s8r2 s9r0 s9r1 s9r2,0,,28.423197948932646
+clip 3,30,5,0,s5r0 s5r1 s8r0 s9r1 s9r2,,0,,120.14742034276327
+unit,30,0,0,,,0,,120.80741219123205
+global clip 3,30,5,2,s1r0 s1r1 s5r0 s5r1 s9r0,s1r0 s1r1,0,,27.694132296244305
+mom,30,10,8,s1r0 s1r1 s1r2 s2r0 s2r2 s5r0 s5r1 s8r0 s8r1 s9r0,s1r0 s1r1 s1r2 s2r0 s2r2 s8r0 s8r1 s9r0,0,,120.43188928763072
+batch 100,30,15,11,s1r0 s1r2 s2r0 s2r1 s2r2 s5r0 s5r1 s6r0 s6r1 s8r0 s8r1 s8r2 s9r0 s9r1 s9r2,s1r0 s1r2 s2r0 s2r1 s2r2 s8r0 s8r1 s8r2 s9r0 s9r1 s9r2,0,,6.107942088445027
+lr 1e-4,30,3,3,s2r2 s8r0 s9r2,s2r2 s8r0 s9r2,0,,27.689165194829304
+N <= 50,30,17,15,s0r0 s1r0 s1r1 s2r0 s2r1 s4r2 s5r0 s5r1 s5r2 s6r0 s6r2 s7r0 s8r0 s8r1 s8r2 s9r1 s9r2,s0r0 s1r0 s1r1 s2r0 s2r1 s4r2 s5r0 s6r0 s6r2 s7r0 s8r0 s8r1 s8r2 s9r1 s9r2,6,s0r0 s4r2 s5r0 s6r0 s6r2 s7r0,5.60546954870224
+N <= 100,30,15,12,s1r0 s1r1 s1r2 s2r0 s2r1 s2r2 s5r0 s5r1 s6r0 s8r0 s8r1 s8r2 s9r0 s9r1 s9r2,s1r0 s1r1 s1r2 s2r0 s2r1 s2r2 s8r0 s8r1 s8r2 s9r0 s9r1 s9r2,0,,10.074479182561237
+two-stage plain,30,0,0,,,0,,28.462095326185228

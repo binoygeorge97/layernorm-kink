@@ -154,3 +154,80 @@ Reading:
 - The repair on the surrogate side remains the strongest: two-stage training, 0 of 30 failed.
 Committed claims affected (your decision; not changed): CLAIMS.md / slides that say "global clipping does not help" (CLAUDE.md
 1.6 lists it as not yet claimable) and anything implying a smaller learning rate does not help.
+
+## S2: Run 4 follow-ups (added 2026-11-04; ALL POST HOC, written after the Run 4 results were read)
+Script `analysis/run4_followups.py` (data/run4) -> out/run4/followups/.
+
+Note on P5a, dated 2026-11-04: P5a is CONFOUNDED until the matched control in (b) is run. The "failed" outcome above stands
+as scored by the frozen script, but it should not be read as "truncation does not avoid the trap".
+
+(a) Failed and trapped runs (seed s, repeat r). Healthy seeds are 0 and 3-7.
+| setting | failed | trapped | healthy seeds trapped? |
+|---|---|---|---|
+| plain | s1 r0-2, s2 r0-2, s5 r0, s8 r0-2, s9 r0-2 | the same without s5 r0 | no |
+| per-start clip 3 | s5 r0, s5 r1, s8 r0, s9 r1, s9 r2 | none | no |
+| unit | none | none | no |
+| global clip 3 | s1 r0, s1 r1, s5 r0, s5 r1, s9 r0 | s1 r0, s1 r1 | no |
+| median of means | s1 r0-2, s2 r0, s2 r2, s5 r0, s5 r1, s8 r0, s8 r1, s9 r0 | the same without s5 | no |
+| batch 100 | s1 r0, s1 r2, s2 r0-2, s5 r0, s5 r1, s6 r0, s6 r1, s8 r0-2, s9 r0-2 | s1 r0, s1 r2, s2 r0-2, s8 r0-2, s9 r0-2 | no (s5, s6 fail, not trapped) |
+| lr 1e-4 | s2 r2, s8 r0, s9 r2 | the same | no |
+| N <= 50 | s0 r0, s1 r0-1, s2 r0-1, s4 r2, s5 r0-2, s6 r0, s6 r2, s7 r0, s8 r0-2, s9 r1-2 | all but s5 r1, s5 r2 | YES: 6 runs (s0 r0, s4 r2, s5 r0, s6 r0, s6 r2, s7 r0) |
+| N <= 100 | s1 r0-2, s2 r0-2, s5 r0-1, s6 r0, s8 r0-2, s9 r0-2 | s1, s2, s8, s9 all repeats | no (s5, s6 fail, not trapped) |
+| two-stage plain | none | none | no |
+Under N <= 50, 6 healthy-seed runs carry the trapped label. That is a warning sign that, for this setting, the label measures
+the horizon mismatch (see b) rather than a trap.
+
+(b) Why P5a (and the trapped counts for N <= 50, N <= 100, batch 100) is confounded. "Trapped" compares DPC's own
+controller with the oracle trained at the full horizon (N = 200) on the full batch, both priced through the surrogate at
+N = 200. A controller trained only up to N = 50 or on noisy minibatches can lose to that oracle on a non-kinked model too,
+purely from horizon or noise mismatch. Cheapest matched control: train the oracle with the same setting through the TRUE
+plant ("true plant (oracle), N <= 50", "..., N <= 100", "..., batch 100"; 3 settings x 10 seeds x 3 repeats). Then
+(i) the gap of each setting against its matched oracle separates optimiser damage from the horizon/noise penalty, and
+(ii) the trapped label is recomputed with the matched oracle priced through the surrogate. Cost on Colab A100, from the
+logged wall times (6, 10, 6 s per seed): about 3 + 5 + 3 min of training plus about 5 min of evaluation and the diagnostic,
+so ~15-20 min. It needs a small code change: one model list with kind "true" plus those options (no change to defaults;
+regression by QUICK). Second option (also ~15 min): the same three settings through the two-stage surrogate, where the
+plain optimiser gives 0/30; any "trapped" label there would be mismatch, not a trap. The matched oracle is the better test,
+because it repairs the label itself.
+
+(c) Paired per-seed comparisons (median gap over the 3 repeats; Wilcoxon signed-rank over 10 seeds; Holm over these 8).
+| comparison | median gaps | seeds where the first is better | p | p (Holm) |
+|---|---|---|---|---|
+| two-stage plain vs unit | 0.04 % vs 0.94 % | 9 of 10 | 0.020 | 0.078 |
+| two-stage plain vs per-start clip 3 | 0.04 % vs 1.32 % | 10 of 10 | 0.002 | 0.016 |
+| two-stage plain vs global clip 3 | 0.04 % vs 2.14 % | 10 of 10 | 0.002 | 0.016 |
+| two-stage plain vs lr 1e-4 | 0.04 % vs 2.42 % | 10 of 10 | 0.002 | 0.016 |
+| plain vs unit | 3.63 % vs 0.94 % | 1 of 10 | 0.004 | 0.020 |
+| plain vs per-start clip 3 | 3.63 % vs 1.32 % | 2 of 10 | 0.11 | 0.21 |
+| plain vs global clip 3 | 3.63 % vs 2.14 % | 4 of 10 | 0.19 | 0.21 |
+| plain vs lr 1e-4 | 3.63 % vs 2.42 % | 3 of 10 | 0.065 | 0.19 |
+(Per-seed medians over repeats, so these medians differ from the run-level medians in the Run 4 table.) After Holm, two-stage
+plain beats clip 3, global clip 3 and lr 1e-4; against unit it is better on 9 of 10 seeds but p (Holm) = 0.078. Only unit
+beats plain after Holm.
+
+(d) Wall time (median train_s_per_seed, s per seed, A100): plain 28, clip 3 120, unit 121, global clip 3 28, median of
+means 120, batch 100 6, lr 1e-4 28, N <= 50 6, N <= 100 10, two-stage plain 28. The column is in the Run 4 table above and
+in paper/tables/tab_optimiser.tex ("s per seed"). Per-start schemes cost about 4x, because they need per-start gradients.
+
+(e) The 5 per-start-clip failures are model mismatch, not traps. Through the surrogate, the clip-3 controller costs LESS
+than the oracle controller on every one; through the true plant it costs 20-55 % more.
+| run | gap | own / oracle, through the surrogate | own, oracle through the true plant |
+|---|---|---|---|
+| s5 r0 | 39.7 % | 2.539 / 2.571 = 0.988 | 3.488, 2.498 |
+| s8 r0 | 38.6 % | 2.474 / 2.560 = 0.966 | 3.462, 2.498 |
+| s5 r1 | 54.6 % | 2.539 / 2.570 = 0.988 | 3.861, 2.498 |
+| s9 r1 | 21.9 % | 2.445 / 2.468 = 0.991 | 3.044, 2.498 |
+| s9 r2 | 20.1 % | 2.445 / 2.471 = 0.990 | 2.999, 2.498 |
+So per-start clipping finds the surrogate's own optimum; the surrogate is wrong there. (Plain also fails s5 r0 the same way.)
+
+(f) Hypothesis (user's): global clipping helps from scratch but not in the warm start because, without clipping, an exploded
+gradient inflates Adam's second-moment estimate v (it decays only with time constant 1/(1 - beta2) = 1000 steps), so the
+effective step lr / sqrt(v) is tiny for ~1000 epochs and learning stalls in the trap. Global clipping bounds what enters v.
+In the warm start the failure is different: the controller starts at the optimum and is pushed off by the first few
+direction-chaotic steps, before any stall can matter; clipping the size does not fix the direction.
+Cheapest test: rerun from scratch, plain vs global clip 3, seeds 1, 2, 8, 9, rep 0 (8 runs), logging every 10 epochs
+max(v), median(v), the update norm, and ||grad|| before clipping. Prediction: in plain runs that end trapped, median(v)
+jumps by orders of magnitude at the first explosion and the update norm collapses for hundreds of epochs; in the global-clip
+runs v stays bounded and the update norm does not collapse. Needs a local script (logging hook around the existing trainer;
+no notebook change). No Colab needed: CPU ~3-4 h in the background (4 seeds vmapped, full 9000-epoch curriculum, two
+settings); on Colab it would be ~10 min but needs a notebook rebuild. I have not run it.
