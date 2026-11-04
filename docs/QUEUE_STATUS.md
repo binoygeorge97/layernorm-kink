@@ -113,3 +113,6 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
 - All six families x 2 seeds ran end to end on the P1 plant (surrogates scaled 0.1: 300 / 1200 steps): Level 1 + ellipsoid kink
   metrics, mini LQR study, short DPC through surrogate and true plant, vector Lambda*. The LQR failure rates (50-100 %) are not
   meaningful with 10x shorter training; tools/plant2_lqr_sanity.py (one full 3000-step static-norm surrogate) checks the LQR code.
+- LQR sanity (tools/plant2_lqr_sanity.py): one full static-norm surrogate (3000 steps, seed 0, 154 s): rel_mse < 1e-5, peak
+  |J_u_hat - B|/|B| 0.89; fixed LQR 0 of 26 runs failed (median gap 0.02 %, max 1.0 %), rescheduled 2 of 26; setpoint gains
+  (10.86-10.99, 11.67-11.74) vs true K (11.09, 11.90). The plant-2 LQR code behaves as the scalar one. Q8 milestones (i), (ii) done.

@@ -1,0 +1,8 @@
+trained in 154s: {'rel_mse': 0.0, 'Ju_sup_rel': 0.88913, 'Ju_rms_rel': 0.24836, 'Jx_sup': 0.01395, 'flip_area': 0.0}
+             n    failed  gap_median   gap_max
+controller                                    
+LQR fixed   26  0.000000    0.000244  0.010104
+LQR sched   26  0.076923    0.008521  3.045301
+setpoint gains K: {-1.0: {'K1': 10.993, 'K2': 11.743}, 0.0: {'K1': 10.92, 'K2': 11.69}, 1.0: {'K1': 10.862, 'K2': 11.67}} | true K: [[11.086 11.903]]
+
+[exited with code 0]
