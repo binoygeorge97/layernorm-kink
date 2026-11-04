@@ -147,3 +147,101 @@ Lambda*. Two other slides state things that Run 5 now contradicts (proposals, yo
    OLD: `One architecture (pre-norm, H = 16); RMSNorm and post-norm are predictions, not results`
    NEW: `One surrogate block (pre-norm, H = 16); RMSNorm and post-norm are predictions, not results`
    (The controller architecture is no longer one: MLP and linear DPC were run. "Architecture" there means the surrogate.)
+
+---------------------------------------------------------------------------------------------------------------------------
+## 7. S3 (added 2026-11-04): optimiser wording after Run 4 - NOT APPLIED
+Source: docs/RESULTS_opt.md, Run 4 section and S2 follow-ups (post hoc parts labelled there).
+
+Proposed wording (the whole optimiser story in four sentences):
+- From scratch, global clipping (clip 3) and lr 1e-4 also rescue most target seeds: 3 of 4 and 4 of 4 (rescued = not failed
+  in >= 2 of 3 repeats; seeds 1, 2, 8, 9). Global clipping leaves 2 traps in 30 runs and lr 1e-4 leaves 3.
+- Unit per-start aggregation gives 0 of 30 failed (and 0 trapped).
+- Two-stage training with a plain optimiser remains the best: per-seed median gap 0.04 %, against 0.9-2.4 % for unit, per-start
+  clip, global clip and lr 1e-4. It beats per-start clip, global clip and lr 1e-4 on 10 of 10 seeds (Holm p = 0.016 each)
+  and unit on 9 of 10 (p = 0.020, Holm 0.078: not significant after Holm). Run-level medians: 0.04 % vs 0.94-2.16 %.
+- Per-start clipping removes the traps (0 of 30) but leaves 5 model-mismatch failures (seeds 5, 8, 9; gaps 20-55 %): the
+  surrogate rates those controllers 1-3 % better than the oracle controller.
+- Caveat to state with it: the N <= 50, N <= 100 and batch 100 trap counts are confounded with horizon/noise mismatch until
+  the matched-oracle control is run (RESULTS_opt.md S2(b)); do not quote "truncation does not avoid the trap".
+Note: the range "0.9-2.2 %" in the request is the run-level range without lr 1e-4's per-seed value; with per-seed medians
+it is 0.94-2.42 %, with run-level medians 0.94-2.16 %. I propose quoting the per-seed numbers, since the test uses them.
+
+Every place that says otherwise (OLD copied verbatim; NEW proposed):
+18. docs/CLAIMS.md, row D11
+   OLD: `| D11 | generic optimiser tricks do not keep it: global clip 3 / median of means / minibatch 100 |`
+   NEW: `| D11 | in the WARM START, generic optimiser tricks do not keep it: global clip 3 / median of means / minibatch 100 |`
+   (true for the warm start; add a note "from scratch see D13").
+19. docs/CLAIMS.md, row D13
+   OLD: `| D13 | optimiser baselines from scratch (P1, P2a, P3a, P4, P5) | - | analysis/opt_report.py | pending Run 4 |`
+   NEW: `| D13 | from scratch: unit 0/30 failed; per-start clip 0/30 trapped, 5 mismatch failures; global clip rescues 3/4 targets (2 traps), lr 1e-4 4/4 (3 traps); median of means 1/4; two-stage plain best (per-seed median gap 0.04 % vs 0.94-2.42 %) | Run 4 | analysis/opt_report.py (218cbbe), run4_followups.py | P1 held; P2a, P3a, P4 failed; P5a confounded; P5b held |`
+20. docs/CLAIMS.md, row G4
+   OLD: `| G4 | "global clipping does not help", "MLP/linear behave like ..." | may NOT be claimed before Runs 4 and 5 |`
+   NEW: `| G4 | "global clipping does not help" | may NOT be claimed: false from scratch (Run 4: 3 of 4 target seeds rescued); true only in the warm start |`
+21. Slide 19 (dpcwarm), speaker notes, paragraph 2
+   OLD: `This is an argument, not a measurement: global clipping has not been run (the same warm-start test with the summed gradient clipped is the next cheap check).`
+   NEW: `Measured since: in the warm start, global clipping is expelled on 4 of 6 broken pairs (per-start clipping 0 of 6). From scratch, however, global clipping rescues 3 of the 4 trapped seeds, and lr 1e-4 all 4: step size matters there, not only direction.`
+22. Slide 19 (dpcwarm), speaker notes, paragraph 3
+   OLD: `Caveat: clipping from a random initialisation (not a warm start) has not been run yet (RUN_ROBUST, A100). Present per-start clipping as a diagnosis (it identifies the cause), not as a fix. The fix is two-stage training (next slides).`
+   NEW: `From a random initialisation (Run 4): per-start clipping leaves 0 of 30 trapped, with 5 model-mismatch failures; unit per-start aggregation 0 of 30 failed. Present them as working optimiser-side fixes that cost 4x the training time; two-stage training is still better (median gap 0.04 % vs 0.9-2.4 %) and costs nothing extra (next slides).`
+23. Slide 23 (limits), left column, bullet 3
+   OLD: `Per-start clipping not yet run from scratch: a causal test, not yet a fix`
+   NEW: `Optimiser fixes work from scratch too (unit 0/30 failed), but cost 4x and leave a larger gap than two-stage`
+24. Slide 23 (limits), right column, bullet 2
+   OLD: `Per-start gradient clipping trained from a random start`
+   NEW: `Matched-oracle control for the truncated-horizon and minibatch baselines`
+25. Slide 23 (limits), speaker notes, paragraph 4
+   OLD: `Clipping: rescues a warm start; whether it lets training from a random start find the good basin is pending (RUN_ROBUST, A100).`
+   NEW: `Clipping: rescues a warm start and, from a random start, removes every trap (Run 4); global clipping and lr 1e-4 also rescue most trapped seeds from scratch, though not in the warm start.`
+26. docs/NOTES_dpc_level1.md, lines 336-337 (T2a)
+   OLD: `    Still open: whether clipping also lets DPC FIND the good controller from scratch (dpc_core.ROBUST_MODELS, 'clip' = 3 and`
+   `    'unit' vote; notebook block "Optimiser-side control", A100 run pending).`
+   NEW: append a dated line instead (NOTES are history): `    Update 2026-11-04 (Run 4): from scratch, clip 3 leaves 0/30 trapped (5 mismatch failures), unit 0/30 failed; global clip 3 and lr 1e-4 rescue 3/4 and 4/4 target seeds. See RESULTS_opt.md.`
+27. docs/NOTES_dpc_level1.md line 310 ("robust per-start gradient clipping / median aggregation as the generic optimiser-side fix"): same dated update; median of means does NOT work from scratch (1 of 4).
+28. CLAUDE.md 1.6, "May not (yet): "global clipping does not help" (never run)": now run; the statement is false from scratch.
+   CLAUDE.md is your handout, so I leave it; it is consistent if read as "may not be claimed".
+29. docs/RESULTS_opt.md, Run 4 "Reading", bullet 4: `Truncating the horizon to N <= 50 or <= 100 does not avoid the trap: 15 and 12 trapped. P5a failed.`
+   Already qualified by the dated S2 note (P5a confounded). No edit (results file history).
+Not affected (checked): companions full/part1 (no optimiser claim), theory.tex, background note (its per-start clipping
+section is about the warm start and stays true), out/slide_fixes.md, paper/ (tables regenerated from Run 4 already).
+
+---------------------------------------------------------------------------------------------------------------------------
+## 8. S3 (added 2026-11-04): kink-centre wording - NOT APPLIED
+Measured centres, max(|x*|, |u*|), all LN families available (data/dpc_out/surrogates.csv, data/dpc_out_s10_29/surrogates.csv):
+| set | families x seeds | x* range | u* range | largest offset |
+|---|---|---|---|---|
+| seeds 0-9 | 4 LN families x 10 | -0.091 to 0.072 | -0.068 to 0.105 | 0.105 (LN MSE 12000 seed 4) |
+| seeds 0-9, LN MSE 3000 only | 10 | -0.091 to 0.072 | -0.068 to 0.072 | 0.091 |
+| seeds 10-29 | LN MSE 3000, two-stage x 20 | -0.071 to 0.070 | -0.136 to 0.144 | 0.144 (two-stage seed 28) |
+| all | 80 centres | -0.091 to 0.072 | -0.136 to 0.144 | 0.144 |
+Record (new finding while checking): the "within 0.1" statement already missed on the original 10 seeds, by one centre:
+LN MSE 12000 seed 4 at (0.067, 0.105). On held-out seeds it missed on four (pre-registered H3, 23b5835, failed): LN MSE 3000
+seed 28 (-0.046, +0.141), seed 29 (-0.006, +0.131); two-stage seed 10 (-0.071, -0.136), seed 28 (-0.053, +0.144).
+Statements restricted to the ten LN MSE 3000 surrogates (|x*| <= 0.09, |u*| <= 0.07) remain true.
+
+Proposed wording: "every LN kink centre lies within 0.15 of (0, 0): |x*| <= 0.09 and |u*| <= 0.15 over 80 centres (4 LN
+families on seeds 0-9, LN MSE 3000 and two-stage on seeds 10-29)". Run 7 adds the other two LN families on seeds 10-29; the
+range should be re-measured then.
+
+Places (OLD verbatim; NEW proposed):
+30. docs/CLAIMS.md, row K2
+   OLD: `| K2 | every LN kink centre lies within 0.1 of (0, 0) | 10/10 seeds | surrogates.csv (zmin_x, zmin_u) | established |`
+   NEW: `| K2 | every LN kink centre lies within 0.15 of (0, 0): abs(x*) <= 0.09, abs(u*) <= 0.15 | 80 centres (seeds 0-9 x 4 LN families, seeds 10-29 x 2) | surrogates.csv (zmin_x, zmin_u) | corrected 2026-11-04 (was "within 0.1, 10/10 seeds"; missed on MSE 12000 seed 4 and on 4 held-out centres) |`
+31. Slide 5 (kinkmap), big number and caption
+   OLD: `0.1` / `every kink centre lies within 0.1 of the origin (10 of 10 seeds)`
+   NEW: `0.15` / `every kink centre lies within 0.15 of the origin (80 centres, 30 seeds)`
+   (alternatively keep 0.1 and say "LN MSE 3000, 10 of 10 seeds", which is true but no longer the general statement.)
+32. Slide 7 (kinkwhy), speaker notes
+   OLD: `training moves b, which widens the kink while the centre stays within 0.1 of the origin.`
+   NEW: `training moves b, which widens the kink while the centre stays within 0.15 of the origin.`
+33. docs/theory/theory.tex line 229 (LN MSE 3000 context): `Their centres stay within $0.1$ of the origin` - true for the ten
+   LN MSE 3000 seeds it describes; propose adding "on seeds 0-9 (within 0.15 on 20 held-out seeds)".
+34. companion/full/main.tex lines 132, 304, 496 and companion/part1/main.tex lines 157, 326, 514: all three describe the ten
+   LN MSE 3000 surrogates ("all centred within 0.1 of the origin"; "$|x^\star|\le0.09$, $|u^\star|\le0.07$"; "centres within
+   0.1 of the origin"). True as written; no change needed unless the companions start covering other families or seeds.
+35. docs/NOTES_dpc_level1.md line 148: `every LN surrogate's kink centre is within 0.1 of (0, 0)` -> dated update "(within
+   0.15 over 80 centres, 2026-11-04)".
+36. src/build_phase_notebook.py line 37 (markdown text in the phase notebook): `The kink centre of every LayerNorm surrogate sits within 0.1 of (0, 0)`
+   -> `within 0.15 of (0, 0)`. A text-only change, but it changes the notebook file, so it needs a rebuild; I would do it
+   with the next notebook rebuild.
+37. CLAUDE.md 1.2 `every LN kink centre within 0.1 of (0, 0)`: your handout; same correction if you want it.
+(prereg/PREREG_heldout.md H3 and PREREG_rms.md M1 use 0.1 as a pre-registered criterion: not to be edited.)
