@@ -158,3 +158,9 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
 - The outcome is already fixed: at B = 0.1 both C1 and C2 have 9 false alarms, and that set has 173 untrapped runs, so their
   false-alarm rate is >= 9/173 = 5.2 % > 5 % whatever the remaining units give. No candidate is eligible. By the protocol
   NOTHING IS FROZEN without your decision. The computation continues so that the full numbers are available.
+
+## Run 4 analysed - commit 54f7494 (docs/RESULTS_opt.md, PREREG_opt outcomes)
+- Rows complete (8 settings x 30), old rows bit-identical, oracles unchanged. Frozen opt_report (218cbbe; I quoted "4ac35d4" in
+  messages earlier, wrongly) run unchanged.
+- Trapped of 30: plain 12, clip 3 0, unit 0, global clip 2, mom 8, batch 100 11, lr 1e-4 3, N<=50 15, N<=100 12; two-stage 0.
+- P1 held; P2a, P3a, P4 (converged), P5a failed; P5b held.
