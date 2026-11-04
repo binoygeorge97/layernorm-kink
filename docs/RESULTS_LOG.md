@@ -83,3 +83,6 @@ stored path: one-step jvp vs m_k <= 3.7e-12 rel, sum of logs <= 1.8e-11; second 
 fold_in(draw), 5 draws, all runs with Lambda* > 8 (GRU 18, linear 15, B01 4, MLP 0) | dpc_out, dpc_out_linear, dpc_out_B01 |
 no run crosses 12.1; near-threshold runs spread 0.00; chaotic long stretches move up to 23 units, all >= 26 | addendum
 prereg/ADDENDUM_2026-11-04_lambda_robustness.md committed before any Run 5/6 result
+2026-11-04 | B5 linear oracle gain | see commit | analysis/linear_gain.py | true plant | argmin DPC loss: clip shape K = 10.25,
+tanh shape K = 17.00 (small starts only 10.5); finite-horizon LQR gain 10.29; costs LQR 2.4968, MLP oracle 2.4972 (slope 10.45),
+linear oracle 2.5235 (slope 16.93) | corrects the "terminal weight" explanation in PREREG_arch Part B (addendum, prereg untouched)
