@@ -116,3 +116,12 @@ SURROGATES_ONLY = False; ONLY = ["LN, MSE (3000)", "LN, J_x + J_u (3000)", "LN, 
 - LQR sanity (tools/plant2_lqr_sanity.py): one full static-norm surrogate (3000 steps, seed 0, 154 s): rel_mse < 1e-5, peak
   |J_u_hat - B|/|B| 0.89; fixed LQR 0 of 26 runs failed (median gap 0.02 %, max 1.0 %), rescheduled 2 of 26; setpoint gains
   (10.86-10.99, 11.67-11.74) vs true K (11.09, 11.90). The plant-2 LQR code behaves as the scalar one. Q8 milestones (i), (ii) done.
+
+## Q5 B2 (done) and R3 (done) - commits 43a260e, b8e4bce (docs/RESULTS_mechanism.md)
+- B2(ii) 2x2: broken expelled plain>plain 5/6, clip3>plain 6/6, plain>clip3 4/6, clip3>clip3 0/6; healthy 0 everywhere. Neither
+  the first step alone nor the later steps alone: every step must be clipped.
+- B2(iii): on broken pairs after epoch 1 the AdamW step is first-order accurate over its whole length but points uphill
+  (cos(step, -g) -0.04 to -0.28); healthy +0.14 to +0.26.
+- R3: consecutive-gradient cosine ~ +1 everywhere (not discriminating); AdamW beta1 = 0 expels 1/6 broken (slope s9), plain 5/6,
+  normalised GD with AdamW's step lengths 4/6; healthy 0 in every arm. The drift goes with momentum + Adam scaling, not with
+  step length.
