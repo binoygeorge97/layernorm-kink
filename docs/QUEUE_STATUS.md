@@ -187,3 +187,11 @@ trained only on Colab (MSE 12000, slope from 0, no norm). Run 8 settings unchang
 - tools/run_quick.py on src/dpc_through_surrogates.ipynb at cd6eb9e (= HEAD for this file), CPU, 400 s, no errors. Against the
   QUICK run of ca00843: same file list; all 44 csv/npz files identical except wall-time fields (train_s, train_s_per_seed). The
   no-norm/static npz kink metrics are NaN in both (undefined without LN; equal with equal_nan). Both Run 7 and Run 9 use cd6eb9e.
+
+## Task 2b P1 (P1a-P1d) - commits 27fa79b (P1a), 0048804 (P1b), 23ef7a1 (PREREG_P1 + notebook)
+- P1a: safe x1 input slope at g = 1: -0.765 < h < 3.03 (x 0.01); proposal addendum + docs/plant2/fig_band2.png.
+- P1b: 3-input labels as accurate as scalar (u column median 1.4 % vs 1.9 % of |B|); keep n = 20 000, k = 1280.
+- P1c: prereg/PREREG_P1.md committed (23ef7a1) BEFORE any P1 surrogate exists (L1-L4, D1-D4, K1; vector Lambda diagnostic only).
+- P1d: notebook src/plant2_P1.ipynb (commit 23ef7a1), QUICK passed (336 s CPU). Colab session 1 (surrogates + oracle):
+  upload src/plant2_P1.ipynb from commit 23ef7a1; settings unchanged (QUICK = False, SEEDS = 0-9, REPS = [0, 1, 2],
+  ARCHS = ["gru", "mlp"], ROOT = "dpc_out_P1" -> MyDrive/dpc_out_P1, new); A100, float64 is built in; ~1 h.
