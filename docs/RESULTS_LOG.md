@@ -79,3 +79,7 @@ exactness check of t2_arch invalid under chaos (documented in PREREG_arch)
 2026-11-04 | B2 exactness caveat | see commit | analysis/exactness_same_traj.py on 4 linear-oracle LN MSE runs | dpc_out | along one
 stored path: one-step jvp vs m_k <= 3.7e-12 rel, sum of logs <= 1.8e-11; second rollout separates (1e-12 by steps 29-69, 1e-6 by
 51-104) | addendum prereg/ADDENDUM_2026-11-04_exactness.md (committed pre-registrations untouched)
+2026-11-04 | B3 Lambda* robustness | 606b0d3 | analysis/lambda_robust.py, 1e-12 N(0,1) start perturbation, key 50000 + s + 1000 rep,
+fold_in(draw), 5 draws, all runs with Lambda* > 8 (GRU 18, linear 15, B01 4, MLP 0) | dpc_out, dpc_out_linear, dpc_out_B01 |
+no run crosses 12.1; near-threshold runs spread 0.00; chaotic long stretches move up to 23 units, all >= 26 | addendum
+prereg/ADDENDUM_2026-11-04_lambda_robustness.md committed before any Run 5/6 result
