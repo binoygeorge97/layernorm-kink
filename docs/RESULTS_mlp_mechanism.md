@@ -1,4 +1,4 @@
-# Why is the MLP trapped? (2026-11-04; ALL POST HOC, nothing pre-registered, no claim changed)
+# Why is the MLP trapped? (2026-11-04/05; ALL POST HOC, nothing pre-registered, no claim changed)
 
 Context: the MLP DPC controller is trapped on 27/30 LN MSE 3000 and 12/30 slope-from-0 runs (Run 5a), with a tame gradient at
 its oracle, so the GRU mechanism (exploding, one-start, direction-chaotic gradient at the good controller) does not explain it.
@@ -64,8 +64,33 @@ Still falling at the end: LN MSE s0 r0 (-23.5 % over the last 500 epochs; loss 8
 (-10.5 %), s3 r0 (-22.8 %), s5 r0 (-4.2 %), s5 r1 (-9.2 %), s9 r1 (-3.1 %), s9 r2 (-2.2 %); slope from 0 s2 r2, s3 r2, s9 r0
 (-7 to -8 %). Rising: LN MSE s2 r1, s2 r2; slope from 0 s8 r2. So 11 of the 39 trapped runs (28 %) were still descending
 clearly when training stopped, 25 were flat at a loss far above the oracle's, 3 were getting worse.
-(b) Extended training (+3000 epochs at N = 200 from the Run 5a controllers, fresh AdamW; rep 0; LN MSE 3000 s1, 2, 8, 9 and
-healthy s4, two-stage s9 as a second healthy pair since LN MSE 3000 has no second healthy seed): SEE BELOW (running).
+(b) Extended training: +3000 epochs at N = 200 from the Run 5a controllers (rep 0), full batch, AdamW (wd 1e-4) from a FRESH
+optimiser state (Run 5a did not save Adam's moments); LN MSE 3000 seeds 1, 2, 8, 9 and healthy seed 4; two-stage seed 9 as a
+second healthy pair (LN MSE 3000 has no second healthy seed). Surrogate cost relative to the MLP oracle's (same function,
+same starts); "reached" = within 5 %. Script analysis/mlp_extend.py, out/mlp_mech/extend_*.csv.
+| seed | start | lr 1e-3: epoch 50 / 150 / 3000 | lr 1e-4: epoch 300 / 1000 / 3000 | reached? | last-500 drop (lr 1e-3, 1e-4) |
+|---|---|---|---|---|---|
+| LN MSE s1 | 4.50 | 1.28 / 1.509 / 1.509 | 1.34 / 1.273 / 1.273 | no | 0, 0 |
+| LN MSE s2 | 4.54 | 1.59 / 1.674 / 1.674 | 3.37 / 2.53 / 1.505 | no | 0, 19 % (still falling) |
+| LN MSE s8 | 4.40 | 1.22 / 1.217 / 1.217 | 1.53 / 1.534 / 1.534 | no | 0, 0 |
+| LN MSE s9 | 1.90 | 1.55 / 1.556 / 1.556 | 1.34 / 1.342 / 1.342 | no | 0, 0 |
+| LN MSE s4 (healthy) | 0.99 | 0.995 / 0.992 / 0.992 | 0.992 / 0.992 / 0.992 | yes | 0, 0 |
+True-plant cost tracks the surrogate cost (e.g. s8 at lr 1e-3: surrogate 3.24, true 3.23, oracle 2.61).
+Answer:
+- The MLP trap is NOT just slow convergence in the sense of "keeps falling toward the oracle": with 3000 more epochs at either
+  learning rate, none of the four trapped seeds reaches within 5 % of the oracle. Three of four are completely flat at 1.2-1.7
+  times the oracle's cost (identical to 3 digits from epoch 150 to 3000 at lr 1e-3); seed 2 at lr 1e-4 is still descending
+  slowly (1.5 x at epoch 3000, -19 % over the last 500 epochs).
+- But part of the Run 5a "trapped" cost WAS an optimiser stall: restarting AdamW with fresh moments cut the cost from 4.4-4.5 x
+  to 1.2-1.7 x the oracle's within 50 epochs at lr 1e-3 (300 epochs at lr 1e-4). Same weights, same surrogate, only the
+  optimiser state reset. This is consistent with the second-moment hypothesis of RESULTS_opt.md S2(f) (an inflated v freezes
+  the effective step), observed here for the MLP. Not tested directly (v was not saved).
+- After the restart every trapped seed settles on a new plateau well above the oracle; the healthy seed does not move.
+Consequence for the MLP trap count (owner's rule): the label does not mainly count slow convergence, so the 40 MLP traps are
+not "unfinished training"; but the size of each trap (the gap) is inflated by the optimiser-state stall, and 11 of the 39 runs
+were still descending at epoch 9000. A corrected definition would at least need the trap test to use a converged controller
+(e.g. after an optimiser restart and a plateau check). Decision for the owner; no claim changed.
+Two-stage seed 9 (healthy control): SEE BELOW (running).
 
 ## 4. M2: saturation (all 39 trapped runs and their oracles; |pre-tanh| > 2 = saturated)
 | family | controller | saturated share of (start, step) pairs, median (IQR) | gradient share from unsaturated steps, median (min) | gradient norm, median |
@@ -105,7 +130,7 @@ and the fixed points of x -> F_hat(x, pi(x)) and x -> A x + B pi(x).
   -1.55 or +0.94, seed 8 at -1.30, seed 9 at +0.64. Similar magnitudes (about 1 to 2), different points; both are offsets of the
   policy, held on both plants.
 
-## Reading (so far; M1(b) pending)
+## Reading
 - The MLP trap is not the GRU mechanism. At the MLP oracle the gradient is tame and stable in direction. There is no barrier
   between the trapped controller and the oracle on most seeds, and the trapped controller is not a stationary point. The
   trapped policies are bang-bang-like controllers with either a spurious equilibrium at |x| ~ 0.2-2.5 that both plants share
@@ -113,5 +138,7 @@ and the fixed points of x -> F_hat(x, pi(x)) and x -> A x + B pi(x).
 - Two facts point at the optimiser near the good controller rather than at a local minimum: the oracle sits in a stiff valley
   (Adam's first 1e-3 step raises the loss everywhere), and on the trap-prone surrogates training from the oracle at lr 1e-3 is
   expelled in about half the runs, while healthy pairs never are; at lr 1e-4 it stays.
-- 28 % of the trapped MLP runs were still descending clearly when training stopped. If extended training brings them to the
-  oracle, part of the MLP "trapped" label counts slow convergence (section 3b decides).
+- 28 % of the trapped MLP runs were still descending clearly when training stopped, but extended training (section 3b) does
+  not bring the trapped seeds to the oracle: after a one-time drop when the optimiser state is reset, they plateau at 1.2-1.7
+  times the oracle's cost. So the MLP trap is real (a plateau, not slow convergence), and part of its depth in Run 5a was an
+  optimiser-state stall.
