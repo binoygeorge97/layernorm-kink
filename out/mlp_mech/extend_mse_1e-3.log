@@ -3,3 +3,9 @@ epoch 1000 (1908s): s1 1.509 s2 1.674 s8 1.217 s9 1.556 s4 0.992
 epoch 1500 (2890s): s1 1.509 s2 1.674 s8 1.217 s9 1.556 s4 0.992
 epoch 2000 (3910s): s1 1.509 s2 1.674 s8 1.217 s9 1.556 s4 0.992
 epoch 2500 (4900s): s1 1.509 s2 1.674 s8 1.217 s9 1.556 s4 0.992
+epoch 3000 (5873s): s1 1.509 s2 1.674 s8 1.217 s9 1.556 s4 0.992
+LN MSE 3000 s1 r0 lr 0.001: surrogate 11.604 -> 3.893 (oracle 2.580, ratio 1.509, reached 5 %: False); true 11.591 -> 4.031 (oracle 2.556); last-500 relative drop -0.0000
+LN MSE 3000 s2 r0 lr 0.001: surrogate 11.980 -> 4.422 (oracle 2.642, ratio 1.674, reached 5 %: False); true 12.120 -> 4.600 (oracle 2.638); last-500 relative drop -0.0000
+LN MSE 3000 s8 r0 lr 0.001: surrogate 11.721 -> 3.241 (oracle 2.663, ratio 1.217, reached 5 %: False); true 11.727 -> 3.225 (oracle 2.609); last-500 relative drop -0.0000
+LN MSE 3000 s9 r0 lr 0.001: surrogate 4.940 -> 4.054 (oracle 2.605, ratio 1.556, reached 5 %: False); true 4.956 -> 4.109 (oracle 2.639); last-500 relative drop -0.0000
+LN MSE 3000 s4 r0 lr 0.001: surrogate 2.533 -> 2.533 (oracle 2.553, ratio 0.992, reached 5 %: True); true 2.740 -> 2.740 (oracle 2.736); last-500 relative drop 0.0000
