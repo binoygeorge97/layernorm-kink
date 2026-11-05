@@ -1,5 +1,7 @@
 # layernorm-kink: experiments for the paper
 
+**Latest handover (5 Nov 2026): [docs/HANDOFF_2026-11-05.md](docs/HANDOFF_2026-11-05.md)** - start there, then CLAUDE.md.
+
 How the pre-norm LayerNorm Jacobian "kink" in a neural surrogate reaches model-based controllers (fixed and rescheduled LQR,
 differentiable predictive control). Owner: Binoy George.
 
