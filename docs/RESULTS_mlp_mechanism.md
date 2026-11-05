@@ -90,7 +90,8 @@ Consequence for the MLP trap count (owner's rule): the label does not mainly cou
 not "unfinished training"; but the size of each trap (the gap) is inflated by the optimiser-state stall, and 11 of the 39 runs
 were still descending at epoch 9000. A corrected definition would at least need the trap test to use a converged controller
 (e.g. after an optimiser restart and a plateau check). Decision for the owner; no claim changed.
-Two-stage seed 9 (healthy control): SEE BELOW (running).
+Two-stage seed 9 (healthy control): surrogate cost 1.981 -> 1.981 at both learning rates (oracle 1.996, ratio 0.992; true
+2.68 -> 2.69-2.70 vs oracle 2.64): unchanged, as for LN MSE seed 4. The fresh-optimiser drop happens only on the trapped runs.
 
 ## 4. M2: saturation (all 39 trapped runs and their oracles; |pre-tanh| > 2 = saturated)
 | family | controller | saturated share of (start, step) pairs, median (IQR) | gradient share from unsaturated steps, median (min) | gradient norm, median |
