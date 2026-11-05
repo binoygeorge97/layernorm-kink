@@ -1,0 +1,7 @@
+epoch 500 (224s): s9 0.992
+epoch 1000 (444s): s9 0.992
+epoch 1500 (665s): s9 0.992
+epoch 2000 (889s): s9 0.992
+epoch 2500 (1109s): s9 0.992
+epoch 3000 (1331s): s9 0.992
+LN two-stage s9 r0 lr 0.001: surrogate 1.981 -> 1.981 (oracle 1.996, ratio 0.992, reached 5 %: True); true 2.682 -> 2.691 (oracle 2.639); last-500 relative drop 0.0000
